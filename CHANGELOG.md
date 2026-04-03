@@ -2,7 +2,7 @@
 
 All notable changes to ZiziCache are documented here.
 
-= 1.0.0 – 2026-03-30 =
+## 1.0.0 – 2026-03-30
 * NEW: ZiziBlocks — ESI-like Dynamic Blocks system that enables full page caching while serving personalized, per-user content (cart count, mini-cart, prices, user greeting, nonces) via client-side hydration through a single batched REST API request.*
 * NEW: ZiziBlocks WooCommerce integration — dynamically hydrates cart count, mini-cart widget, product prices, and stock status on cached pages without invalidating the page cache.*
 * NEW: ZiziBlocks multi-currency support — detects active currency from cookies (WOOCS/FOX, WCML, Aelia, VillaTheme) and returns prices in the correct currency per user, eliminating the need for per-currency cache variants.*
