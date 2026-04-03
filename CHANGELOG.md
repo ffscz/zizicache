@@ -2,6 +2,39 @@
 
 All notable changes to ZiziCache are documented here.
 
+= 1.0.0 – 2026-03-30 =
+* NEW: ZiziBlocks — ESI-like Dynamic Blocks system that enables full page caching while serving personalized, per-user content (cart count, mini-cart, prices, user greeting, nonces) via client-side hydration through a single batched REST API request.*
+* NEW: ZiziBlocks WooCommerce integration — dynamically hydrates cart count, mini-cart widget, product prices, and stock status on cached pages without invalidating the page cache.*
+* NEW: ZiziBlocks multi-currency support — detects active currency from cookies (WOOCS/FOX, WCML, Aelia, VillaTheme) and returns prices in the correct currency per user, eliminating the need for per-currency cache variants.*
+* NEW: ZiziBlocks User Blocks — dynamically renders user greeting, avatar, login/logout link and account menu for logged-in users on otherwise fully cached pages.*
+* NEW: ZiziBlocks Nonce Blocks — replaces WordPress nonce fields (`_wpnonce`, WooCommerce nonce, comment nonce) with always-fresh values, fixing broken forms on pages with long cache TTLs.*
+* NEW: ZiziBlocks fragment cache layer with Redis/Memcached/file fallback; per-block configurable TTL and cache invalidation hooks.*
+* NEW: ZiziBlocks IntersectionObserver lazy hydration — medium/low priority blocks (prices below the fold) are only fetched when they approach the viewport, reducing initial batch request size.*
+* NEW: ZiziBlocks CLS prevention — placeholders carry `min-width`, `min-height`, and `contain-intrinsic-size` attributes matching the original element dimensions, preventing layout shift during hydration.*
+* NEW: ZiziBlocks `<noscript>` fallback — original content is preserved inside `<noscript>` tags within every placeholder, ensuring correct display for crawlers and users without JavaScript.*
+* NEW: ZiziBlocks admin UI tab (Dynamic Blocks) with per-feature toggles, live status, cache stats, and registered block list.*
+* FIXED: ZiziBlocks batch API response keying — multiple blocks of the same type (e.g. `wc-price` for different products on a shop listing page) now return individually keyed results, preventing all products from displaying the same price.*
+* FIXED: ZiziBlocks REST route collision — `/blocks/status` and `/blocks/cache` endpoints are now registered before the wildcard `(?P<block_id>[a-zA-Z0-9_-]+)` route, ensuring status and cache-management endpoints resolve correctly.*
+* FIXED: ZiziBlocks fetch timeout was configured (`blocks_timeout`, default 5000 ms) but never enforced. Requests to `/blocks/batch` now use `AbortController` with the configured timeout, preventing indefinitely hanging hydration requests.*
+* FIXED: ZiziBlocks cache key generation switched from `serialize()` to `wp_json_encode()` for deterministic, injection-safe fragment cache keys.*
+* FIXED: FTP Image Auto-Registration no longer enters an infinite re-registration loop on sites using WordPress 5.3+ scaled images (e.g. `1-scaled.jpg`). The duplicate detection now checks both the original path and its `-scaled` variant against a single batch-loaded lookup, replacing N per-file SQL queries with one.*
+* FIXED: `wp_generate_attachment_metadata()` replaced with a lightweight `getimagesize()` approach in `FTPImageRegistration`, preventing out-of-memory crashes on very large images (100+ MP). Memory-safety guard retained for edge cases.*
+* FIXED: Removed duplicate `_wp_attached_file` meta row that was being created by both `wp_insert_attachment()` and an extra `add_post_meta()` call.*
+* FIXED: Thumbnail and derivative file filter in `FTPImageRegistration::scan_directory()` now applies to all image extensions, not only WebP/AVIF.*
+* FIXED: `MediaLibraryIndexer::is_file_indexed()` now correctly recognises an original image as already indexed when WordPress stored it under its `-scaled` variant name, preventing repeated false-positive indexing attempts.*
+* FIXED: `MediaLibraryIndexer::get_unindexed_stats()` no longer counts WordPress derivative files (thumbnails, `-scaled`, `-rotated`, double-extension converted WebP/AVIF) as unindexed originals, eliminating spurious full-scan triggers.*
+* FIXED: `MediaLibraryIndexer::index_file()` duplicate check replaced with a direct `$wpdb->get_var` query (including `-scaled` variant lookup) instead of the heavyweight `get_posts()` + `meta_query` JOIN.*
+* FIXED: Regex pattern for stripping `<script>`, `<noscript>`, and `<template>` tags now uses possessive quantifiers to prevent catastrophic backtracking on malformed HTML.*
+* FIXED: HTML attribute parser (`get_atts_array()`) now correctly handles edge-case attributes using a branch-reset regex pattern.*
+* FIXED: Disabled RSS feeds now return HTTP 410 (Gone) instead of a 301 redirect, correctly signaling permanent removal to search engines.*
+* IMPROVED: `MediaLibraryIndexer` now skips derivative files early in `scan_and_index_uploads()` before any cache lookups, reducing iteration overhead on large uploads directories.*
+* IMPROVED: `MediaLibraryIndexer::maybe_auto_index_uploads()` now exits immediately if the FTP scan transient is active, preventing a redundant double-scan on every Media Library page load.*
+* IMPROVED: CSS parser engine upgraded to Sabberworm PHP CSS Parser 9.3.0, adding native support for CSS `@layer`, `@scope`, `@starting-style`, container queries, escaped quotes in selectors, improved `calc()` parsing, and PHP 8.5 compatibility.*
+* IMPROVED: All vendor libraries (Sabberworm CSS Parser, Safe polyfill) are now namespace-isolated under `ZiziCache\Vendor\*` to prevent conflicts with other plugins shipping the same libraries.*
+* IMPROVED: CSS `@layer` forward declarations are now properly normalized and re-serialized in both RUCSS and Critical CSS pipelines.*
+* IMPROVED: CDN URL rewriting now applies to inline `style` attributes in addition to `<link>` and `<style>` tags.*
+* IMPROVED: WooCommerce unused CSS now differentiates product types (`product-variable`, `product-grouped`, `product-external`) for more accurate per-page used CSS generation.*
+
 ## 0.9.9-rc – 2026-03-15
 - **FIXED:** Custom CSS selectors (configured in JavaScript settings) now correctly apply to both lazy render methods – CSS-only and Hybrid. Previously, custom selectors were only reliably processed in Hybrid mode.
 - **FIXED:** "Exclude from lazy render" selectors now correctly suppress lazy rendering in both CSS-only and Hybrid methods. The selector detection and exclusion check now run before the method switch, ensuring identical behavior across both modes.
