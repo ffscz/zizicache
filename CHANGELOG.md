@@ -2,6 +2,9 @@
 
 All notable changes to ZiziCache are documented here.
 
+## 1.0.1 – 2026-03-30
+- **NEW:** Migration from Lemon Squeezy to the new payment system Creem.io (EU Based, from Estonia). All existing license keys and updates remain fully functional. New payment, registrations and licenses are now handled through Creem.io.
+
 ## 1.0.0 – 2026-03-30
 - **NEW:** ZiziBlocks — ESI-like Dynamic Blocks system that enables full page caching while serving personalized, per-user content (cart count, mini-cart, prices, user greeting, nonces) via client-side hydration through a single batched REST API request.
 - **NEW:** ZiziBlocks WooCommerce integration — dynamically hydrates cart count, mini-cart widget, product prices, and stock status on cached pages without invalidating the page cache.
