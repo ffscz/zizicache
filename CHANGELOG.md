@@ -2,6 +2,10 @@
 
 All notable changes to ZiziCache are documented here.
 
+## 1.0.2 – 2026-04-10 =
+- **IMPROVED:**  Enhanced license validation.
+- **IMPROVED:**  UI improvements in the plugin dashboard.
+
 ## 1.0.1 – 2026-04-08
 - **NEW:** Migration from Lemon Squeezy to the new payment system Creem.io (EU Based, from Estonia). All existing license keys and updates remain fully functional. New payment, registrations and licenses are now handled through Creem.io.
 
