@@ -2,6 +2,33 @@
 
 All notable changes to ZiziCache are documented here.
 
+## 1.0.4 – 2026-04-23 =
+- **FIX:** Image Optimization — sizes="auto" is now only emitted on lazy-loaded images, where it is valid per the HTML spec. Eager/ATF images no longer include a redundant or invalid sizes attribute; their responsive srcset remains and defaults to 100vw.
+- **FIX:** Image Optimization — loading="eager" is no longer written to output HTML; eager loading is the browser default and the attribute was unnecessary.
+- **FIX:** Image Optimization — fetchpriority and decoding attributes are now consistently placed at the end of the <img> tag, after src, srcset, and sizes.
+- **FIX:** Image Optimization — In N-count bootstrap mode (first visit without ATF/viewport data), only 1 <link rel="preload" as="image"> is generated for the hero/LCP image instead of all N eager images.
+- **IMPROVED:** Image Optimization — On fresh pages without ATF data, the first N images (default N=3) remain eager as a bootstrap; only the first image receives a preload with fetchpriority="high" until real viewport data is collected.
+
+## 1.0.3 – 2026-04-22 =
+- **IMPROVED:** Preload watchdog now recovers from stale or overdue cron events when DISABLE_WP_CRON=true is used with infrequent server-side cron schedules.
+- **FIX:** Permanent MISS on multilingual sites (WPML, Polylang, TranslatePress) resolved; cache drop-in now correctly reads language-specific cache files (e.g. index-cs.html.gz).
+- **SECURITY:** Language cookie values are sanitized before use in filesystem paths to prevent path traversal.
+- **NEW:** NagataPress multilingual integration — translated URL variants (/en/, /de/, etc.) are added to preload and auto-purge queues.
+- **NEW:** Cookie-based multilingual preload warming for WPML, Polylang, and TranslatePress via zizi_cache_preload_lang_cookies.
+- **NEW:** Dashboard "Cache files" badge displaying total .html.gz page cache files (including language variants).
+- **IMPROVED:** Cache Status page now correctly detects cached pages on multilingual setups with language-suffixed filenames.
+- **NEW:** Speculation Rules API served via Speculation-Rules HTTP header pointing to /wp-json/zizi-cache/v1/speculation-rules (Cloudflare Speed Brain compatible).
+- **NEW:** REST endpoint /wp-json/zizi-cache/v1/speculation-rules with correct MIME type and cache headers.
+- **NEW:** Cache drop-in (advanced-cache.php) now sends Speculation-Rules header on cache HITs.
+- **FIX:** Analytics prerender guard updated to use document.prerendering instead of deprecated API.
+- **FIX:** Prerender guard added to LCP, TTFB, and LoAF detectors to prevent execution during prerender phase.
+- **FIX:** Quicklink analytics guard script is no longer emitted empty when no analytics IDs are configured.
+- **REMOVED:** Invalid Speculation Rules admin toggles ("Require HTTPS", "Anonymous IP") removed.
+- **FIX:** Font auto-detect now includes CSS fallback scanning for @font-face woff2 URLs.
+- **FIX:** Font Intelligence REST endpoint now persists data for anonymous visitors.
+- **FIX:** Admin "Auto-detected Font URLs" field now falls back to fonts_preload_urls when needed.
+- **FIX:** Font statistics reset now fully clears all related options and transients.
+
 ## 1.0.2 – 2026-04-10 =
 - **IMPROVED:**  Enhanced license validation.
 - **IMPROVED:**  UI improvements in the plugin dashboard.
