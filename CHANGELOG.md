@@ -2,6 +2,15 @@
 
 All notable changes to ZiziCache are documented here.
 
+## 1.0.5 – 2026-05-04 =
+
+- **FIX:** Cache Status in Dashboard Overview — Now correctly reflects warmed pages and recalculates totals without artificial inflation. UI adjustments applied for both LS mode and File-Based mode.
+- **NEW:** Translations — Added support for the following locales: cs_CZ — Čeština (Česká republika), sk_SK — Slovenčina (Slovensko), de_DE — Deutsch (Deutschland), es_ES — Español (España), fr_FR — Français (France), it_IT — Italiano (Italia), pt_BR — Português (Brasil), nl_NL — Nederlands (Nederland), pl_PL — Polski (Polska), sv_SE — Svenska (Sverige), da_DK — Dansk (Danmark), nb_NO — Norsk Bokmål (Norge), ja — 日本語 (日本), tr_TR — Türkçe (Türkiye).
+- **IMPROVED:** Optimization > CSS Loading Strategy — Added new method “Remove Original”.
+- **IMPROVED:** Optimization > CSS Loading Strategy — Enhanced “Exclude Stylesheets” and “Never-Remove Selectors” handling.
+- **IMPROVED:** Image Optimization — Improved detection of images for preload in Above The Fold.
+- **IMPROVED:** Optimization > Delay All JavaScript — Added new method “Load when idle”.
+
 ## 1.0.4 – 2026-04-23 =
 - **FIX:** Image Optimization — sizes="auto" is now only emitted on lazy-loaded images, where it is valid per the HTML spec. Eager/ATF images no longer include a redundant or invalid sizes attribute; their responsive srcset remains and defaults to 100vw.
 - **FIX:** Image Optimization — loading="eager" is no longer written to output HTML; eager loading is the browser default and the attribute was unnecessary.
