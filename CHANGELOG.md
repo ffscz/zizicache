@@ -2,6 +2,11 @@
 
 All notable changes to ZiziCache are documented here.
 
+## 1.0.6 – 2026-05-09 =
+- **FIX:** Language-Aware Cache — Now respects the user’s Language Priority configuration by mapping detected language subsets to their corresponding position within the priority chain.
+- **FIX:** LiteSpeed Mode — Resolved an issue where LiteSpeedPreload::process_results() never triggered increment_warmed_count(), causing the warmed pages counter to remain at 0 even after hundreds of successful warmups. Verification tests confirmed the fix.
+- **IMPROVED:** LiteSpeed Hit Rate Visualization — Reworked the layout from a 4-column grid with numeric counters above labels (HIT / MISS / No-C / UNK) into a unified vertical stack layout matching the rest of the Cache Status card design.
+
 ## 1.0.5 – 2026-05-04 =
 
 - **FIX:** Cache Status in Dashboard Overview — Now correctly reflects warmed pages and recalculates totals without artificial inflation. UI adjustments applied for both LS mode and File-Based mode.
