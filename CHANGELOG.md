@@ -3,56 +3,192 @@
 All notable changes to ZiziCache are documented here.
 
 
-## 1.0.13 – 2026-09-22 =
-- **IMPROVED:** LiteSpeed – the purge loopback (used whenever a purge has to be delivered after the response headers went out) is answered early in `init` (`?zizi_ls_purge=1`, a WordPress bootstrap only) instead of rendering the homepage, so a save in the editor is not delayed by a full page render.*
-- **FIX:** Update – the `advanced-cache.php` drop-in is regenerated also when the plugin version number did not change but the drop-in template did (pre-release builds carrying the same version, files uploaded by hand); the check compares the template checksum on admin requests. Previously such a site kept the old drop-in until the next version bump.*
-- **FIX:** LiteSpeed – automatic purge of specific URLs did not reach LSCache. Three causes: a URL purge was translated only into cache tags derived from the post ID, so archives, filtered listings and URLs added through `zizi_cache_auto_purge_urls` that do not map to a post were never purged; when the purge ran after the response headers were sent (the automatic purge runs on `shutdown`, after all save handlers), the header was only queued "for the next request", but on a LiteSpeed site the next visitor request is served by LSCache without PHP, so the stale page kept being served until some uncached request happened; and two queued purges overwrote each other. Every purged URL is now also sent as `url=<uri>` (exact match, documented LiteSpeed syntax), tags carry their own `tag=` prefix, a purge issued after headers were sent is delivered immediately through a loopback request (with Basic Auth forwarded on protected stagings) and the pending queue merges instead of overwriting. Manual purges were not affected.*
-- **IMPROVED:** CSS Loading Method – the built-in list of stylesheets that are never deferred is now filterable (`zizi_cache_css_never_defer_patterns`), so a theme or site plugin can protect its own render-critical stylesheets (or release one of the built-in entries) without editing the plugin.*
-- **FIX:** Critical CSS – self-hosted Google Fonts stylesheets (Elementor `uploads/elementor/google-fonts/`, Perfmatters, OMGF) were inlined into the Critical CSS in full: every subset and weight of every family as raw `@font-face` rules. They are now excluded from Critical CSS like Google's own CSS and, being small `@font-face`-only files, always load render-blocking so text paints with the right metrics.*
-- **FIX:** Priority hints – an explicit `fetchpriority="high"` already present in the markup (a theme's hero image, an author's decision) is no longer downgraded to `auto` or `low`; the plugin only adds hints where the markup has none.*
-- **FIX:** Redundancy – "Disable WooCommerce cart fragments" and "Disable WooCommerce assets on non-shop pages" ran on `wp_enqueue_scripts` at priority 11, so a theme that enqueues at priority 20 (or later) re-added the handles and the options did nothing. The dequeues now run last on `wp_enqueue_scripts` and once more on `wp_print_scripts`.*
-- **IMPROVED:** ZiziBlocks – the dynamic price blocks (`wc-price`, rendered in the visitor's currency and cached per currency) can now be switched on in the Dynamic Blocks screen ("Dynamic Prices"). The option existed but was not exposed, so on cached pages only the currency switcher's own JavaScript redrew prices and, for example, FOX special price codes in product carousels and side-cart totals stayed in the shop's base currency.*
-- **FIX:** Preload – only one background worker processes the preload queue at a time. The queue is advanced by three independent triggers (the worker's own self-ping, the cron event and the watchdog's stale-event rescue) and each of them started another chained worker, so a long queue was soon fetched by several workers in parallel and a shared host spent its capacity on preloading instead of on visitors (cached pages answered in 1 to 2 seconds while three workers ran). A non-blocking file lock next to the queue now serialises the workers; a trigger that finds the lock held returns immediately.*
-- **FIX:** Preload – the preload requests sent the WordPress HTTP API default `Accept: */*`. Plugins that rewrite image URLs per request for capable browsers (WebP Express "Alter HTML" in its "only for WebP-enabled browsers" mode, and this plugin's own WebP/AVIF frontend serving) therefore rendered the preloaded page without WebP/AVIF, and because the cached HTML is shared by all visitors, every browser received the original JPEG/PNG files until the page was re-rendered by a real visit. The preload now sends the Accept header of a current browser (`text/html,…,image/avif,image/webp,…`), so the cached HTML matches what a visitor's browser would get.*
-- **IMPROVED:** Preload without WP-Cron – the background worker now pings itself for the next batch, so a purge-and-preload runs through the whole queue even with `DISABLE_WP_CRON` or an unreliable host cron (previously only the first 5 URLs were preloaded and the rest waited for a cron-driven watchdog). The cron event remains as a fallback. Inside a user-facing request (admin click, REST, save) the queue is no longer processed synchronously, which had moved the most important pages (homepage, shop) to the end of the queue.*
-- **FIX:** Preload – the queue self-ping used a generic `token` query parameter that another plugin on a customer site intercepted ("invalid token"), so the queue never started. The parameter is now `zizi_preload_token`.*
-- **IMPROVED:** Staging sites behind HTTP Basic Auth – the plugin's own loopback requests (preload page fetches, queue self-ping) forward the Basic credentials of the current request to the site's own host, so preloading works on password-protected stagings; and Application Password authentication is skipped for the plugin's public REST endpoints (ZiziBlocks hydration, CWV/LCP beacons, speculation rules) when the Basic credentials belong to the web server rather than to a WordPress user (WordPress otherwise answered 401 "invalid_username"). Real Application Passwords keep working; other REST namespaces are not affected.*
-- **FIX:** ZiziBlocks – variable products could not be added to the cart while the dynamic stock-status block was enabled. The placeholder's `data-params` attribute was HTML-escaped (`&quot;`); WooCommerce embeds the availability markup in the `data-product_variations` JSON without double encoding, so the entities decoded to bare quotes inside the JSON, the variations data became unparsable and the variation form never enabled the button. The params are now written in a single-quoted attribute with JSON escapes, which survives both direct output and the JSON round trip.*
-- **FIX:** ZiziBlocks / FOX Currency Switcher – on cached pages the currency override script renamed `woocs_current_currency` to the visitor's currency before FOX sent its price-redraw request, so FOX answered "already in this currency" and the cached prices stayed in the original currency. When FOX runs in its cached-shop mode (`woocs_shop_is_cached` / `woocs_special_ajax_mode`) the override is skipped and FOX redraws the prices itself.*
-- **IMPROVED:** CSS Loading Method – the active theme's and child theme's stylesheets and Elementor's frontend, kit and widget stylesheets are never deferred (they carry the page layout; deferring them caused large layout shifts). Together with the exclusion fix below, "Async" + Critical CSS measured CLS 0.02 to 0.03 on an Elementor WooCommerce site.*
-- **FIX:** CSS Loading Method / Critical CSS – exclusions never matched when CSS minification was on. The minifier rewrites every stylesheet URL to `cache/zizi-cache/<hash>.<file>.css` before the CSS pipeline runs, so path-based patterns (the built-in safety list for Elementor post CSS, WooCommerce and theme styles as well as the user's "Exclude Stylesheets" lists) were compared against the cache URL and silently ignored: protected stylesheets were deferred or removed and pages built with Elementor or a JavaScript product gallery lost their styling. The original URL is now kept on the tag (`data-zizi-src`) and patterns are matched against the original URL, the cache URL and the stylesheet handle (`id=<handle>-css`). Slider, lightbox and gallery libraries (Splide, Swiper, Flickity, Owl, FlexSlider, PhotoSwipe, lightGallery, GLightbox, Fancybox, product-gallery) were added to the built-in list because their JavaScript measures the DOM on init and deferred CSS leaves them unstyled or mis-sized.*
-- **FIX:** Automatic purge – after saving a post or page the cache could be rebuilt with the OLD content. The purge and the preload ran inside `post_updated`, which WordPress fires before the `save_post` handlers of other plugins (ACF, meta boxes, WooCommerce product data) and before page builders such as Elementor store their element data and regenerate their CSS; the preload therefore re-cached the page in its previous state and the change stayed invisible until the next purge. The URLs are now collected during the request and purged + preloaded on shutdown, when every save has finished. The previous permalink is purged as well when the slug changes.*
-- **FIX:** Elementor – saving a header, footer, single/archive/popup/loop template or Site Settings (kit) purged only the template's own permalink, so every real page kept serving the old layout. Site-wide templates now purge all cached pages (the same applies to Divi/Bricks/Oxygen/Breakdance layouts, block-theme template parts, global styles, navigation and synced patterns). The plugin also listens to `elementor/document/after_save` and to Elementor's "Regenerate CSS & Data" (`elementor/core/files/clear_cache`).*
+## 1.0.16 – 2026-09-26
+- **SECURITY:** REST API – settings responses never contain the Cloudflare token or passwords.
+- **SECURITY:** Page Cache – ?cache_bust rebuilds a cached page only for logged-in users.
+- **SECURITY:** ZiziBlocks – prices by role or tax location are no longer shared between visitors.
+- **SECURITY:** Images – deleting an image also deletes its WebP/AVIF copies, which stayed public.
+- **SECURITY:** Fonts – font downloads always verify certificates, also behind a local proxy.
+- **SECURITY:** Statistics – rate limits of the public CWV, LCP and font beacons can no longer be bypassed.
+- **SECURITY:** Admin – Redis and Memcached password fields are never prefilled by the browser or printed into the page.
+- **SECURITY:** License – license keys are masked in the plugin log and the browser console.
+- **NEW:** Page Cache – notice when WordPress does not load the page cache.
+- **NEW:** Settings – login for loopback requests on Basic Auth protected sites.
+- **NEW:** LiteSpeed – notice when OpenLiteSpeed needs a restart for new rules.
+- **NEW:** CSS – Purge Critical CSS button and a list of protected stylesheets.
+- **NEW:** JavaScript – switches for the Animation CLS guard.
+- **FIX:** Admin – one permission rule for the settings page, REST and AJAX.
+- **FIX:** Page Cache – drop-ins and wp-config lines of other plugins stay untouched.
+- **FIX:** Page Cache – switching it off and on handles the drop-in and WP_CACHE correctly.
+- **FIX:** Page Cache – the drop-in is written in one step, no HTTP 500 during a save.
+- **FIX:** Page Cache – Bypass URLs match the same pages everywhere and purge them on save.
+- **FIX:** Page Cache – tablets and the Sec-CH-UA-Mobile hint get one consistent variant.
+- **FIX:** Page Cache – gclid, fbclid and utm values no longer end up in cached pages.
+- **FIX:** Page Cache – Include Query Strings win, generic parameters can be removed.
+- **FIX:** Page Cache – WOOCS, CURCY and WCML currencies get their own cached pages.
+- **FIX:** Page Cache – WooCommerce geolocation with page caching works.
+- **FIX:** Page Cache – 304 and gzip follow the visitor's variant and Accept-Encoding.
+- **FIX:** Page Cache – expired pages are refreshed in the background again.
+- **FIX:** Purge – pagination, comment pages, host aliases and proxied hosts are cleared.
+- **FIX:** Purge – menu, widget, theme, template and permalink changes clear the cache.
+- **FIX:** Preload – after a save the page, homepage and archives are warmed again, also with LiteSpeed.
+- **FIX:** Preload – saving in the editor no longer waits for the preload.
+- **FIX:** Preload – URLs added during a running batch are warmed right after it.
+- **FIX:** LiteSpeed – a pending purge is no longer lost when another purge follows.
+- **FIX:** Settings – saves purge only when a setting changes cached pages, on every tab.
+- **FIX:** Settings – consistent defaults, 0 and empty values keep their type.
+- **FIX:** Admin – settings save with a renamed plugin folder, subfolder or plain permalinks.
+- **FIX:** LiteSpeed – one cache mode everywhere, X-LSCACHE only with a constant.
+- **FIX:** LiteSpeed – cache off, engine switch, WP-CLI and cron purge LSCache.
+- **FIX:** LiteSpeed – bypass, password, commenter and logged-in cookies skip LSCache.
+- **FIX:** LiteSpeed – Separate Mobile Cache keeps a mobile copy, the preload warms it.
+- **FIX:** LiteSpeed – status codes, redirects and BFCache for logged-in users respected.
+- **FIX:** LiteSpeed – purge everything clears this site only.
+- **FIX:** LiteSpeed – pauses its mode while the LiteSpeed Cache plugin is active.
+- **FIX:** LiteSpeed – the dashboard no longer crawls the site every 15 seconds.
+- **FIX:** LiteSpeed – the preload respects its switch and the load per CPU core.
+- **FIX:** .htaccess – WordPress in a subfolder, strict Apache servers, no needless rewrites.
+- **FIX:** Hosting – Kinsta, WP Engine, SiteGround, Varnish, APO and Nginx Helper are purged.
+- **FIX:** Cloudflare – disconnect works, the cache rule follows edge caching.
+- **FIX:** Cloudflare – the edge cache follows the site's cache headers and keeps mobile, tablet and desktop apart.
+- **FIX:** Cloudflare – excluded pages, searches, currency cookies and Bypass Cookies are no longer cached at the edge.
+- **FIX:** Cloudflare – purged after the page cache files, old pages no longer return to the edge.
+- **FIX:** CDN – relative URL rewrite no longer breaks foreign and JSON URLs.
+- **FIX:** CSS – Remove Original removes only stylesheets covered by Critical CSS.
+- **FIX:** CSS – Critical CSS per page type, template and device, rebuilt after changes.
+- **FIX:** CSS – encoded inline backgrounds, media queries and CSP nonces survive.
+- **FIX:** CSS – Early Hints preload only the Critical CSS the page uses.
+- **FIX:** CSS – Remove Original keeps code highlighting styles (Prism, highlight.js).
+- **FIX:** Fonts – icon fonts, variable weights and theme-hosted fonts are kept.
+- **FIX:** Fonts – the Auto-Optimizer purges only when the fonts change.
+- **FIX:** Fonts – fonts the site declares itself (Elementor Pro Custom Fonts) are not loaded again from Google.
+- **FIX:** CSS/JS – third-party files are named after the whole URL.
+- **FIX:** Images – originals are deleted only where the server can replace them.
+- **FIX:** Images – delivery follows frontend serving, CDNs and refused checks.
+- **FIX:** Images – hero images, lazy backgrounds, sizes and picture preloads.
+- **FIX:** Images – the image width set by the author is kept, only the height follows the file.
+- **FIX:** Images – WebP and AVIF also for images with Elementor thumbnails in srcset.
+- **FIX:** IFrame – lazy loaded maps and videos load again.
+- **FIX:** JavaScript – After page load no longer holds clicks on working buttons.
+- **FIX:** JavaScript – Elementor libraries and add-ons are no longer delayed until after load.
+- **FIX:** JavaScript – with deferred jQuery, ready handlers see the inline data (WPForms).
+- **FIX:** JavaScript – jQuery Migrate runs after a jQuery loaded from a CDN or theme.
+- **FIX:** Optimization – an error during optimization sends the page unoptimized instead of HTTP 500.
+- **FIX:** Statistics – debug modes no longer measure every visitor.
+- **FIX:** Remove Redundancy – public REST of known plugins stays open, list with exceptions.
+- **FIX:** ZiziBlocks – blocks load on old cached pages and with a blocked REST API.
+- **FIX:** Speculative Loading – header on all pages, Analytics Guard IDs save.
+- **FIX:** Pages Not Cached – pagination, real preload status, sites on a port.
+- **FIX:** Database – the scheduled cleanup keeps recent revisions and spam.
+- **FIX:** Object Cache – Memcached without the PHP extension no longer breaks the site.
+- **FIX:** SiteGround – its options are switched off once, only with the page cache on.
+- **FIX:** Admin – panel status texts stay translated after switching an option.
+- **FIX:** License – deleting the plugin releases this site's activation, copies of the site keep theirs.
+- **FIX:** License – a failed activation shows the real reason and where the license is active.
+- **FIX:** License – activation succeeds only when the license is saved, errors offer a retry.
+- **FIX:** License – deactivation tells whether the activation was really released.
+- **FIX:** License – an outage of the license server no longer switches off a recently checked license.
+- **FIX:** Uninstall – works from WP-CLI, removes all plugin tables, no PHP warning.
+- **CHANGED:** Page Cache – CDN-Cache-Control only with the Cloudflare integration.
+- **CHANGED:** Settings – removed options that had no effect.
+- **CHANGED:** Cloudflare – the edge cache TTL follows the page cache expiration.
+- **CHANGED:** Images – new installs keep the original images.
+- **CHANGED:** Remove Redundancy – jQuery Migrate stays on for new installs and in builders.
+- **CHANGED:** Database – new installs have no scheduled cleanup.
+- **IMPROVED:** Translations – all new texts in 15 languages.
 
-## 1.0.12 – 2026-09-10 =
-- **FIX:** Database – the "Monthly" cleanup interval is now registered in every context that can schedule the cleanup, including the REST request that saves the Database settings. Previously the interval was only known on cron, WP-CLI and plugin-page requests, so choosing "Monthly" in the UI silently scheduled nothing; a failed `wp_schedule_event()` is now logged as an error instead of being reported as success.*
-- **FIX:** Database – the scheduled cleanup measures the trash retention of comments from the moment they were trashed (`_wp_trash_meta_time`) instead of from the comment date, and keeps auto-drafts younger than 7 days (the same rule as WordPress core), so a freshly opened "Add New" post can no longer be deleted while an editor is still writing in it.*
-- **FIX:** Image Converter – when registered sub-sizes are still missing after the bounded retries (for example an abandoned client-side upload), the original file is now kept instead of being deleted; it is the only source the sub-sizes can be regenerated from.*
-- **FIX:** Cloudflare – a Purge Everything retry after a 429, and any purge coalesced while the deferred purge action itself was running, was never scheduled because the running Action Scheduler action counted as "already pending"; only pending actions are considered now. The 30-URL fallback of Purge by URL is used only for validation errors (auth, connection and rate-limit errors are no longer amplified by extra calls) and duplicate URLs are removed before purging. The 24-hour analytics query now fetches every hourly bucket of the window (the previous row limit could drop one hour).*
-- **FIX:** Dashboard – "Cached pages" counted cache files (one per language variant) while "Total pages" and "Pages not cached" counted pages, so the cached number could exceed the total on multilingual sites. All three now come from the same URL tracker; the file count is still shown as "Cache files (desktop, all languages)". Pages that can never be cached (WooCommerce cart, checkout and account, user exclusion rules, feeds) are tracked as excluded, shown as "Excluded pages" and no longer counted in the totals, so the coverage can reach 100 %.*
-- **FIX:** Preload – the asynchronous self-ping that starts processing the preload queue was rejected (HTTP 403) whenever the preload was started by a logged-in administrator: the nonce was bound to that user, but the loopback request carries no cookies. The self-ping is now authenticated with a site secret, so a purge-and-preload started from the dashboard begins immediately instead of waiting for the 5-minute watchdog.*
-- **IMPROVED:** License – a failed remote validation (license API unreachable, or a key the API does not recognise) is now remembered for 15 minutes / 1 hour instead of being retried on every admin, REST and AJAX request; each retry blocked the request for up to 30 seconds. A re-check from the License screen still contacts the API immediately.*
-- **SECURITY:** hardening – the CDN screen escapes every Cloudflare-provided string (zone, plan, account name, error messages) before rendering it; the public LCP beacon endpoint accepts at most 64 KB and stores only an allow-list of sanitized keys instead of the raw posted object; the page-cache drop-in rejects glob metacharacters in the host and path before touching the filesystem.*
-- **FIX:** PHP 8.1 – `LcpHandler::check_rate_limit()` declared a standalone `true` return type, which is PHP 8.2 syntax. On PHP 8.1 the class could not be loaded and every request handled by WordPress outside wp-admin (frontend pages not served from the page cache, REST and AJAX) ended with a fatal error. The declared minimum (Requires PHP: 8.1) is now accurate.*
-- **FIX:** Page cache – cached HTML served by the `advanced-cache.php` drop-in no longer carries `Cache-Control: public, max-age=31536000`. Browsers (and any proxy honouring `public`) kept stale HTML for up to a year, so visitors did not see purged content until a hard reload, and logged-in users could be served a stale anonymous copy from their own browser cache (empty REST nonce, expired Core Web Vitals HMAC token, LCP beacons rejected with 403). Cache hits now send `Cache-Control: no-cache, must-revalidate` together with `Last-Modified`, so browsers revalidate and get `304 Not Modified` while the cached copy is current. `CDN-Cache-Control` for edge caches is unchanged. The drop-in is regenerated automatically on update.*
-- **FIX:** Image Converter – automatic WebP/AVIF conversion did not run for images uploaded through the REST API: the block editor, and the client-side media processing introduced in WordPress 7.1 (uploads via `/wp/v2/media`, `/sideload` and `/finalize`). The image modules loader checked the `REST_REQUEST` constant on `init`, but WordPress defines it later during `parse_request`, so the converter and the metadata validator were never hooked in REST requests. REST requests are now detected from the request URL (same approach as the cache modules loader). The classic uploader (`async-upload.php`) and bulk optimization were not affected.*
-- **IMPROVED:** Image Converter – original file cleanup (when "Keep originals" is disabled) is postponed while registered sub-sizes are still missing, with a bounded number of retries. WordPress 7.1 client-side uploads deliver sub-sizes after the first metadata pass, so the original must not be removed before the upload is finalized. Duplicate cleanup actions for the same attachment are no longer scheduled.*
-- **Compatibility:** tested with WordPress 7.1 (persistent toolbar, iframed editor, client-side media processing).*
-- **FIX:** Database – the scheduled cleanup no longer wipes everything regardless of the settings. Revisions, auto-drafts, spam and expired transients are cleaned automatically; trashed posts and comments are removed only after WordPress' own retention period (`EMPTY_TRASH_DAYS`, 30 days) and "all transients" is manual-only. All deletions now go through `wp_delete_post()` / `wp_delete_comment()` in batches, so post meta, term relationships, comment meta and attachment files are removed too and delete hooks fire (direct `DELETE FROM wp_posts` left orphaned rows). Long runs are paused after 20 seconds and continued by a follow-up cron event.*
-- **FIX:** Database – the "monthly" cleanup schedule offered in the UI was never registered with WP-Cron, so a monthly cleanup silently never ran; the adaptive schedule used the non-existent `twice_daily` interval (now `twicedaily`).*
-- **IMPROVED:** Database – index recommendations skip indexes that duplicate an existing key (same leading columns, including `type_status_date`, `type_status_author` added in WordPress 6.9, `comment_approved_date_gmt` and the core `autoload` key), apply (32) prefixes on Antelope (COMPACT) tables where utf8mb4 keys would exceed 767 bytes, warn for non-InnoDB tables and refuse to alter them, run `ANALYZE TABLE` after creating an index, and record created indexes so they can be dropped again with the new "Revert plugin indexes" button.*
-- **IMPROVED:** Database – the autoload summary lists the ten largest autoloaded options (with WordPress' 150 kB limit flagged) and can stop autoloading a single option via `wp_set_option_autoload()`; autoload values are read from `wp_autoload_values_to_autoload()` (WordPress 6.6+).*
-- **FIX:** Database tab loaded Highcharts twice (Highcharts error #16 in the browser console).*
-- **FIX:** Cloudflare – Emergency Failover read DNS records with the type/page filters sent in the body of a GET request, which the HTTP client dropped, so every query returned the same first unfiltered page and larger zones were not switched completely. GET parameters are now sent in the query string.*
-- **FIX:** Cloudflare – the connection test used the Zone Analytics REST API, deprecated since March 2021 and never returning data. Traffic statistics now come from the GraphQL Analytics API (`httpRequests1hGroups`, requires Zone → Analytics → Read; skipped when the token lacks it). The test also reports the zone's Early Hints setting, because Cloudflare only emits HTTP 103 when it is enabled.*
-- **IMPROVED:** Cloudflare – full purges triggered by menu, widget, theme, plugin or permalink changes are coalesced (at most one `purge_everything` per 15 seconds, the rest is folded into one deferred Action Scheduler run) and a 429 rate-limit answer is retried after `Retry-After`; the Free plan allows only five full purges per minute. Purge by URL sends up to 100 URLs per request (the current Cloudflare limit) and falls back to 30-URL chunks if rejected.*
-- **IMPROVED:** Cloudflare – the API token permission table and error messages now match the current Cloudflare documentation (Zone → Cache Rules → Edit, Account → Account Rulesets → Edit, Account → Account Filter Lists → Edit, Zone → Zone → Read). Removed the unused legacy `Rules` class and `Manager::activate()/deactivate()`.*
-- **FIX:** Image Converter – "Undefined array key scheme" warning for relative image URLs in `get_attachment_id_from_url()`.*
-- **FIX:** Thumbnail management – disabled image sizes are also removed from `wp_get_missing_image_subsizes()`, which WordPress 7.1 client-side uploads and the deferred big-image pass use to decide which sizes to generate.*
-- **FIX:** Preload – permalinks of non-viewable post types (e.g. WooCommerce HPOS `shop_order_placehold` placeholders) are no longer preloaded; they always ended in a 404.*
-- **FIX:** Font optimization – `<link rel="preload" as="font">` is no longer emitted for a self-hosted font file that does not exist any more. After a full cache purge the Google Fonts CSS is re-proxied under new file hashes while the saved preload list still pointed to the old files, so every page shipped a 404 font preload until the Font Auto-Optimizer cron ran again.*
-- **FIX:** Database – transient cleanup also removes leftover `_transient_*` rows from wp_options on sites with a persistent object cache (Redis/Memcached), where `delete_transient()` only touches the cache.*
-- **IMPROVED:** Logging – the PageBuilders integration no longer writes an ERROR line for every anonymous admin-ajax, cron or REST request; the Core Web Vitals endpoint no longer writes a debug line to the PHP error log on every beacon.*
+## 1.0.15 – 2026-09-25
+- **SECURITY:** Page Cache – preload flags in a request no longer store POST or logged-in pages.
+- **SECURITY:** Page Cache – unlocked password protected posts are no longer cached for other visitors.
+- **SECURITY:** Page Cache – pages with a commenter's name, email or pending comment are no longer cached.
+- **SECURITY:** Page Cache – pages rendered with a WooCommerce cart or session are no longer stored for everyone.
+- **SECURITY:** Page Cache – currency and cart variants are no longer served as a language fallback.
+- **SECURITY:** Page Cache – cached pages for logged-in roles need a signed role cookie.
+- **SECURITY:** 404 Cache – the shared 404 page comes only from an anonymous visit and is refreshed after the lifespan.
+- **SECURITY:** Admin – settings only for allowed roles, no Cloudflare token or passwords in the page or the drop-in.
+- **SECURITY:** Files – the log and the preload database get secret names and are blocked in .htaccess.
+- **FIX:** Page Cache – a saved LiteSpeed mode on a server without LiteSpeed no longer switches the page cache off.
+- **FIX:** Page Cache – DONOTCACHEPAGE and no-store/private headers are respected, also on LiteSpeed.
+- **FIX:** Page Cache – cache expiration 0 no longer switches the cache off while old pages stay online.
+- **FIX:** LiteSpeed – hit rate and preload behind Cloudflare check this server, not the Cloudflare copy.
+- **FIX:** ZiziBlocks – visitors with items in the cart get a fresh page, the cart count shows their cart.
+- **FIX:** ZiziBlocks – nonce fields keep their action, forms no longer fail after hydration.
+- **FIX:** Prefetch – Speculation Rules and Quicklink skip links with parameters (add to cart, log out).
+
+## 1.0.14 – 2026-09-24
+- **SECURITY:** REST API – the CWV page summary is admin-only.
+- **NEW:** JavaScript – "Defer all JavaScript" with two strategies: Defer (default) and After page load.
+- **NEW:** JavaScript – inline scripts can be deferred in their original order (off when CSP forbids it).
+- **NEW:** Image Converter – delivery check with status on the Images screen and an Nginx snippet.
+- **FIX:** JavaScript – inline code keeps its order and dependencies (jQuery, Mergado).
+- **FIX:** JavaScript – ZiziCache and Quicklink scripts no longer block the parser.
+- **FIX:** JavaScript – muted autoplay videos are never held back.
+- **FIX:** Update – saved settings without a default were reset on every update.
+- **FIX:** Settings – the fallback save keeps all JavaScript options.
+- **FIX:** LCP – images below the fold are no longer preloaded after scrolling.
+- **FIX:** LCP – without a separate mobile cache, each device preloads only its own LCP image.
+- **FIX:** Image Converter – every visitor gets AVIF, WebP or the original, independent of the page cache.
+- **FIX:** Image Converter – without originals, attachments point to WebP.
+- **FIX:** .htaccess – only ZiziCache sections are changed, other rules stay untouched.
+- **FIX:** Uninstall – no longer removes other plugins' rules or causes HTTP 500.
+- **FIX:** Deactivation – .htaccess rules are removed in "auto" cache mode too.
+- **FIX:** REST API – the logged-in-only restriction no longer blocks ZiziBlocks, CWV or the Store API.
+- **FIX:** REST API – endpoints work with plain permalinks.
+- **FIX:** ZiziBlocks – the current minified client is loaded without WP_DEBUG.
+- **FIX:** Translations – Spanish and Slovak corrected, new texts translated into all languages.
+- **FIX:** ZiziBlocks user blocks and relative times use English source texts (other languages showed Czech).
+- **CHANGED:** JavaScript "Load on user interaction" and CSS "On Interaction" are retired; settings are migrated.
+- **CHANGED:** JavaScript – the third-party panel delays only widgets (chat, embeds, video).
+- **IMPROVED:** JavaScript – analytics, consent managers and pixels are never delayed.
+- **IMPROVED:** Image Converter – "Vary: Accept" only where needed, so Cloudflare caches images again.
+- **IMPROVED:** Lazy loading supports `<picture>`.
+- **IMPROVED:** Frontend scripts back off when the REST API is blocked.
+
+## 1.0.13 – 2026-09-22
+
+- **FIX:** License – plan name and details refresh on every validation.
+- **FIX:** LiteSpeed – automatic URL purges now reach LSCache.
+- **FIX:** Update – the drop-in is regenerated when its template changes.
+- **FIX:** Automatic purge – pages are purged after all save handlers, no stale content.
+- **FIX:** Elementor – saving templates or Site Settings purges all pages.
+- **FIX:** CSS – exclusions work with CSS minification on.
+- **FIX:** Critical CSS – self-hosted Google Fonts CSS is no longer inlined.
+- **FIX:** Priority hints – an existing fetchpriority="high" is kept.
+- **FIX:** WooCommerce – cart fragment and asset options work with late theme enqueues.
+- **FIX:** ZiziBlocks – variable products can be added to the cart again.
+- **FIX:** ZiziBlocks – FOX currency prices redraw on cached pages.
+- **FIX:** Preload – one worker at a time, browser Accept header for WebP/AVIF.
+- **FIX:** Preload – the self-ping parameter no longer clashes with other plugins.
+- **IMPROVED:** LiteSpeed – the purge loopback no longer renders the homepage.
+- **IMPROVED:** CSS – theme and Elementor layout styles are never deferred; the list is filterable.
+- **IMPROVED:** ZiziBlocks – new "Dynamic Prices" switch.
+- **IMPROVED:** Preload runs without WP-Cron.
+- **IMPROVED:** Preload and REST work on stagings behind HTTP Basic Auth.
+
+## 1.0.12 – 2026-09-10
+
+- **SECURITY:** Hardening of the CDN screen, the LCP beacon and the page-cache drop-in.
+- **FIX:** PHP 8.1 – fatal error in the LCP handler.
+- **FIX:** Page cache – browsers no longer keep cached HTML for a year.
+- **FIX:** Image Converter – conversion runs for REST and WordPress 7.1 client-side uploads.
+- **FIX:** Image Converter – warning for relative image URLs.
+- **FIX:** Thumbnails – disabled sizes are skipped in WordPress 7.1 uploads.
+- **FIX:** Database – scheduled cleanup respects the settings and trash retention.
+- **FIX:** Database – the monthly schedule works.
+- **FIX:** Database – transient cleanup with a persistent object cache.
+- **FIX:** Database – Highcharts loaded twice.
+- **FIX:** Dashboard – cached and total page counts match; excluded pages shown.
+- **FIX:** Cloudflare – purge retries and failover DNS paging.
+- **FIX:** Cloudflare – connection test uses the GraphQL Analytics API.
+- **FIX:** Preload – starts immediately from the dashboard, skips non-viewable post types.
+- **FIX:** Fonts – no preload of deleted self-hosted font files.
+- **IMPROVED:** Image Converter – originals are kept until all sub-sizes exist.
+- **IMPROVED:** Database – safer index recommendations, with revert.
+- **IMPROVED:** Database – autoload summary lists the largest options.
+- **IMPROVED:** Cloudflare – coalesced full purges, 100-URL batches, current token permissions.
+- **IMPROVED:** License – failed validations are cached, not retried on every request.
+- **IMPROVED:** Logging – less log noise.
+- **Compatibility:** tested with WordPress 7.1.
 
 ## 1.0.11 – 2026-07-09 =
 - **SECURITY:** Privilege escalation — the plugin's REST API management endpoints (configuration, database cleanup, license, Cloudflare/CDN credentials, cache purge) no longer grant access to the `editor` role. Access is restricted to administrators, still filterable via `zizi_cache_allowed_roles`. Previously an Editor holding a standard `wp_rest` nonce could reach administrator-level controls.*
