@@ -2,6 +2,9 @@
 
 All notable changes to ZiziCache are documented here.
 
+## 1.0.17 – 2026-09-27
+- **FIX:** LiteSpeed – WooCommerce notices, recently viewed products and emptied carts no longer end up in cached pages.*
+- **FIX:** LiteSpeed – pages of a full cart are cached only while the cart cookies match the cart.*
 
 ## 1.0.16 – 2026-09-26
 - **SECURITY:** REST API – settings responses never contain the Cloudflare token or passwords.
