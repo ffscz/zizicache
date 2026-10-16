@@ -2,6 +2,15 @@
 
 All notable changes to ZiziCache are documented here.
 
+== Changelog ==
+## 1.0.19 – 2026-10-06
+- **FIX:** TranslatePress – preload and the purge after saving use the real language addresses.*
+- **FIX:** Dashboard – cached pages and Pages Not Cached cover every language version of multilingual sites.*
+
+## 1.0.18 – 2026-10-06
+- **FIX:** Preload – no longer deletes WP-Cron events that other plugins schedule while it runs.*
+- **FIX:** Page Cache – first-time visitors get cached pages again on shops with CURCY (Multi Currency for WooCommerce).*
+
 ## 1.0.17 – 2026-09-27
 - **FIX:** LiteSpeed – WooCommerce notices, recently viewed products and emptied carts no longer end up in cached pages.*
 - **FIX:** LiteSpeed – pages of a full cart are cached only while the cart cookies match the cart.*
