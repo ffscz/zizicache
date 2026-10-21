@@ -3,6 +3,67 @@
 All notable changes to ZiziCache are documented here.
 
 == Changelog ==
+## 1.1.1 – 2026-10-21
+- **FIX:** Lazy load – a hero image served as a resized WebP/AVIF copy is kept out of lazy loading again.*
+- **FIX:** Lazy load – the first-screen image no longer gets fetchpriority "low" when the browser picked its WebP/AVIF copy.*
+- **FIX:** AI & MCP – the page check warns about a lazy image only when visitors saw it on the first screen.*
+- **FIX:** AI & MCP – no recommendation to exclude an image that is the LCP of only a few views of its page.*
+
+## 1.1.0 – 2026-10-20
+- **NEW:** AI & MCP – connect Claude, ChatGPT, Cursor and other AI apps over MCP; off until an admin turns it on.*
+- **NEW:** AI & MCP – sign-in with OAuth or an Application Password; WordPress Abilities on WordPress 6.9+.*
+- **NEW:** AI & MCP – the AI reads cache status, settings and Core Web Vitals and runs the health checks.*
+- **NEW:** AI & MCP – the AI checks pages of the site and recommends settings with their effect and risk.*
+- **NEW:** AI & MCP – settings change only after a preview and your approval, with an automatic snapshot.*
+- **NEW:** AI & MCP – purge and preload by page, URL or the whole site, with a dry run.*
+- **NEW:** AI & MCP – bundled web performance skills, audit prompts and a skill ZIP for Claude Code, Claude.ai and Codex.*
+- **NEW:** AI & MCP – lab runs of the AI are stored and compared before and after a change.*
+- **NEW:** AI & MCP – presets and the self-test as AI tools; WP-CLI: wp zizi-cache self-test and preset.*
+- **NEW:** Simple mode – one screen with three levels (Safe, Recommended, Aggressive) and 13 plain switches.*
+- **NEW:** Simple mode – every change shows a preview first and can be undone for 24 hours.*
+- **NEW:** Self-test – new installs check right away that the cache works and how much faster pages are.*
+- **NEW:** Advanced mode – badges on settings to test after changing; advanced settings can be collapsed.*
+- **NEW:** Page settings – a box in the editor turns off the cache or single optimizations for one page.*
+- **NEW:** Optimizations – pause them for testing on the simple screen; ?zizi-cache-off shows a page without them.*
+- **NEW:** JavaScript – quick exclusions for plugins whose scripts break when delayed.*
+- **NEW:** Settings – history of changes, named snapshots and rollback with a preview.*
+- **NEW:** Metrics – real-visitor LCP, INP, CLS, FCP and TTFB with 75th percentiles, trend and filters.*
+- **NEW:** Metrics – slowest pages, LCP phases and element, CLS source, INP target and scripts by owner.*
+- **NEW:** CSS – optional Used CSS for theme and page builder stylesheets (Elementor).*
+- **NEW:** Fonts – optional fallback font metrics for self-hosted fonts, against layout shifts.*
+- **NEW:** Fonts – font checks warn about heavy fonts and fonts without unicode-range.*
+- **NEW:** JavaScript – optional delay of analytics and heatmap scripts until the first interaction.*
+- **IMPROVED:** Metrics – measurement scripts load only on sampled page views.*
+- **IMPROVED:** LCP – Auto LCP learns on every visit for 2 hours after caching, until the page has a record.*
+- **IMPROVED:** Images – only the learned LCP image is preloaded with high priority; a text LCP preloads no image.*
+- **IMPROVED:** Speculative Loading – rules come from the cache without WordPress; Quicklink only as a fallback.*
+- **IMPROVED:** Preload – batch size follows the response time of the site (switch in Page Cache).*
+- **IMPROVED:** Animation – only transform and opacity animations get their own layer.*
+- **CHANGED:** Metrics – TTFB is part of the real-visitor metrics; its switch gives way to "Ignore query strings".*
+- **CHANGED:** Settings – new installs start with the emoji script off, YouTube placeholders and local Gravatars on.*
+- **CHANGED:** Page Cache – the debug header shows MISS [X] and HIT [404] instead of 404-CANDIDATE.*
+- **CHANGED:** Database – the growth chart uses Chart.js; the Overview no longer loads a chart library.*
+- **CHANGED:** Interface – updated sites stay in the Advanced mode; new installs start in the Simple mode.*
+- **FIX:** CSS – stylesheets of active cookie consent plugins are left out of Used CSS, so the banner stays visible.*
+- **FIX:** CSS – under a Content-Security-Policy that blocks inline handlers, stylesheets are not deferred (they would never load).*
+- **FIX:** JavaScript – under a Content-Security-Policy that blocks inline scripts, scripts are only deferred, never delayed or inlined (a loader would never run).*
+- **FIX:** CSP – inline styles are left untouched under a style hash policy, Gutenberg lazy blocks also honour a CSP in a meta tag.*
+- **IMPROVED:** CSS – cookie banner styles of Pressidium, Cookie Notice and GDPR Cookie Compliance load without blocking rendering.*
+- **FIX:** Preload – the WP-Cron preload queue no longer stops on a PHP error.*
+- **FIX:** .htaccess – JavaScript sent as text/javascript is compressed and cached by browsers.*
+- **FIX:** LiteSpeed – a second purge of the same URL in one WP-CLI or cron run reaches LSCache.*
+- **FIX:** LCP – learned images survive the cache renewal; addresses with accents are matched.*
+- **FIX:** Metrics – no console messages for visitors; Firefox can keep pages in the back/forward cache.*
+- **FIX:** CSS – Remove Original keeps stylesheets that Used CSS could not read completely.*
+- **FIX:** JavaScript – Defer all JavaScript also works on sites whose address contains a plugin or service name (zizicache.com).*
+- **FIX:** Uninstall – removes the new tables and the Core Web Vitals cron events.*
+- **SECURITY:** AI & MCP – the AI never reads or changes licence keys, passwords and tokens.*
+- **SECURITY:** AI & MCP – sensitive settings (CDN URL, Redis host, alert e-mails...) cannot be changed by the AI.*
+- **SECURITY:** AI & MCP – OAuth 2.1 with PKCE, hashed tokens and rate limits; a reused code revokes the sign-in.*
+- **SECURITY:** AI & MCP – Origin check, read-only sign-ins cannot change settings, answers are never cached.*
+- **SECURITY:** AI & MCP – page checks fetch only this site; visitor data reaches the AI as untrusted text.*
+- **SECURITY:** Metrics – measurement beacons accept only allowed fields, small payloads and limits per IP.*
+
 ## 1.0.19 – 2026-10-06
 - **FIX:** TranslatePress – preload and the purge after saving use the real language addresses.*
 - **FIX:** Dashboard – cached pages and Pages Not Cached cover every language version of multilingual sites.*
