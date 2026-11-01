@@ -3,6 +3,97 @@
 All notable changes to ZiziCache are documented here.
 
 == Changelog ==
+## 1.2.0
+- **NEW:** Admin – completely new administration with light and dark theme, one Save changes bar for all settings, a settings snapshot on every save (last 10, restorable in History), no layout jumps while a page loads and a visible loading state while data load.*
+- **NEW:** Editor – ZiziCache panel in the block editor and a box in the classic editor: switch off the page cache, optimizations or single features (lazy load, LCP preload, font preload) for one page.*
+- **NEW:** Overview – tiles for cache coverage, hit rate, TTFB and preloaded pages, a chart of cache hits and misses (24 hours, 7 and 30 days) and a TTFB over time chart in Metrics.*
+- **NEW:** Page cache – cache hit statistics (one byte per cached visit), on by default, switch in Page Cache.*
+- **NEW:** Images – bulk conversion runs as a background job with progress, pause, resume and cancel; deleting originals asks for confirmation. WP-CLI: `wp zizi-cache images`.*
+- **NEW:** Images – an upload no longer waits for AVIF/WebP; the copies are made in the background and the pages that use the image are purged afterwards.*
+- **NEW:** Images – optional Delete product images that no longer exist (WooCommerce, off by default) and a tool that finds orphaned product images and deletes them after a preview.*
+- **NEW:** Database – overview from a stored snapshot, cleanup in the background with progress, index recommendations with a dry run (shows the SQL and a time estimate), background apply and revert. WP-CLI: `wp zizi-cache db`.*
+- **NEW:** Metrics – Core Web Vitals of real visitors in one new storage (periods 1, 7 and 28 days, FCP card); Redis page with a connection test and server statistics.*
+- **NEW:** Settings – option to keep ZiziCache data on uninstall (default: delete, as before).*
+- **NEW:** Quicklink – library updated to 3.0.2; speculation rules carry the tag `zizi-cache`; clearer descriptions of eagerness; warnings for prerender with eager, prerender without the analytics guard, Performance Lab, Cloudflare Speed Brain and the Instant Back/Forward plugin.*
+- **NEW:** BFCache – the page explains how Chrome handles pages with no-store and detects the Instant Back/Forward plugin.*
+- **NEW:** Developers – action `zizi_cache_config_saved($diff, $stored, $source)` with the changed settings.*
+- **IMPROVED:** Translations – the whole administration in all 14 languages.*
+- **IMPROVED:** Speed – clearing the cache, saving settings, database cleanup and external purges (Cloudflare, Varnish, hosting) run in the background; the request returns in well under a second.*
+- **IMPROVED:** Loading – ZiziCache loads only the code the request needs (page, admin, REST, AJAX, cron); fewer files, no licence queries on visitor, admin, AJAX and heartbeat requests.*
+- **IMPROVED:** Frontend – building an optimized page on a cache miss takes about half the time with fewer database queries; smaller plugin scripts and no Chart.js or Font Awesome in the package.*
+- **IMPROVED:** Updates – one upgrade path with a lock for update and activation; no reset of the whole server OPcache, the object cache is flushed only for ZiziCache keys; deactivation removes all scheduled events, uninstall removes only its own wp-config lines.*
+- **IMPROVED:** Purge – editing, renaming or deleting a term, removing a term from a post and editing a comment now purge the right archive or post; ZiziBlocks cache files are cleared too.*
+- **IMPROVED:** Fonts – font statistics in a single option, only pages of your own site are accepted; the Google check, CDN check and YouTube/Vimeo thumbnails run in cron, not while a page is built.*
+- **IMPROVED:** Logging – fewer log lines by default and no database writes for log throttling.*
+- **CHANGED:** PHP – ZiziCache 1.2.0 requires PHP 8.2 (was 8.1). On an older PHP the plugin stays off, shows a notice and turns the page cache off; after going back to 1.1.7, save its settings once.*
+- **CHANGED:** Downgrade – only to 1.1.7 is supported; deactivate ZiziCache before the downgrade. Per-page flags LCP and font preload have no effect there, and after restoring a 1.1.6 backup clear the cache and save the settings once by hand.*
+- **CHANGED:** Defaults – new defaults for Google Fonts injection from statistics, animation auto-compose and auto preconnect apply to new installs only; existing sites keep their values.*
+- **CHANGED:** Integrations – ZiziCache no longer changes the settings of Perfmatters, BuddyBoss or EWWW; it shows a notice with a Set it for me button instead. Earlier changes stay.*
+- **CHANGED:** Images – thumbnail size options now work: disabled sizes apply on every upload (Media Library, REST, WP-CLI), and a switched-off option is saved.*
+- **CHANGED:** Images – GIF images are no longer converted (the copy of an animated GIF showed its first frame only); GIF copies of earlier versions are removed after the update, except where the GIF itself was deleted.*
+- **CHANGED:** Bypass cookies – a pattern is matched as part of the cookie name, not as a regular expression.*
+- **CHANGED:** Log – the log file moved to `wp-content/zizi-cache-logs/`; after a downgrade the folder stays there.*
+- **CHANGED:** Hook – `zizi_cache_update_config:after` now runs for every way of saving (fonts, images, Simple mode, database) and only when something changed; it is not called during the upgrade migration.*
+- **CHANGED:** REST – the namespace `zizi-cache` (without `/v1`) is deprecated and answers with a Deprecation header (filter `zizi_cache_legacy_rest_namespace`); `/blocks/status`, `/blocks/{id}` and `/bfcache/diagnostics` too. Removal planned in 1.3.0.*
+- **CHANGED:** REST – database cleanup, Optimize Database and applying index recommendations return a background job; database status no longer includes DB_USER and DB_HOST; old LCP, LoAF and TTFB beacons are ignored.*
+- **CHANGED:** Quicklink – saved limits outside the allowed range are trimmed (throttle 1-10, limit 1-50, delay 0-5000, timeout 500-10000); prerender eagerness is fixed to moderate; Lazy Render method javascript works as hybrid.*
+- **REMOVED:** Features – legacy JavaScript delay, legacy unused-CSS removal, the Lazy Render block panel in Gutenberg (it never worked), the image metadata validator, signature files (.zcsig), the Performance cards and Quick Actions (now in the Actions menu).*
+- **REMOVED:** Settings – unused settings of earlier versions are removed from the stored configuration, together with leftover options and transients of removed features.*
+- **REMOVED:** REST – 49 routes without a caller, among them `/cdn/status`, `/cdn/clear-cache`, `/performance-settings`, `/thumbnail/stats`, `/database-growth-history`, `/db-event-log`, `/ai/mcp/connections`, debug and test-cache of `/account` and `/license`, `media-indexer/scan` and `/stats`.*
+- **REMOVED:** AJAX – `zizi_cache_test_redis`, `zizi_cache_save_html_settings`, `zizi_cache_save_html_exclusions`, `zizi_cache_get_html_exclusions`, `zizi_index_uploads`, `zizi_scan_ftp_images` and the purge/status actions of WPML, Weglot, Polylang, WooCommerce and WCML.*
+- **REMOVED:** Hooks – filters `zizi_cache_exclude_from_delay:js`, `zizi_cache_preload_is_cacheable`, `zizi_cache_cache_key`, `zizi_cache_cache_include_queries`, `zizi_cache_should_load_admin_scripts` and actions `zizi_cache_purge_all`, `zizi_cache_font_data_updated` (they never ran or had no effect); some unused PHP methods are removed, a few stay as deprecated stubs until 1.3.0.*
+- **FIX:** Page cache – the .htaccess rewrite base no longer picks up the language folder of TranslatePress, Polylang or WPML, which caused error 500 for visitors.*
+- **FIX:** Cloudflare – the failover check works over HTTP and in WP-CLI.*
+- **FIX:** Database – Optimize tables works on MySQL 8; the OPcache domain usage AJAX answers with JSON.*
+- **FIX:** Settings – two saves at the same time no longer overwrite each other; a multi-line custom guard code can be saved; Quicklink prerender modes really prerender.*
+- **FIX:** Page cache – pages with /wp-json/ or a file extension only in the query string and pages with sitemap in the slug are cached again; pages of logged-in users are not cached while BFCache is on.*
+- **FIX:** Licence – the 24 hour and 7 day limits use UTC; the licence no longer expires on sites without working WP-Cron; SiteGround Speed Optimizer is detected.*
+- **FIX:** CSS – relative URLs in CSS files are resolved correctly (../ above the web root, URLs with only a query).*
+- **FIX:** Varnish – no PHP 8.5 deprecation notice when the purge answer is read.*
+- **FIX:** Images – with Keep original files off, an original or thumbnail is deleted only when its WebP copy exists; before, browsers without AVIF could get AVIF or the full-size image.*
+- **FIX:** Images – deleting originals on a Windows server no longer leaves the image with a broken file path.*
+- **FIX:** Images – on WordPress 6.5 and 6.6, deleting originals now switches the image to its copy (before, it kept pointing at the deleted files); images left that way by 1.1.x and stored in the uploads folder are switched by the next bulk optimization.*
+- **FIX:** Images – deleting originals works on a moved or copied site: the copies are checked on the disk, not by their stored paths.*
+- **FIX:** Images – a format the server cannot write (AVIF without a working encoder, now checked by a test write) is no longer tried on every bulk run; with AVIF only, the bulk optimization says so.*
+- **FIX:** Images – the statistics stay right after uploads, deleted images, deleted originals and deleted thumbnail sizes; before, they drifted until Recount statistics.*
+- **FIX:** Images – an image replaced under the same file name (for example with Enable Media Replace) gets new copies; before, visitors kept getting the old image.*
+- **FIX:** Images – deleting an image also deletes the backup of its original made before the original cleanup.*
+- **FIX:** Uninstall – the image conversion data stored with the media are removed too.*
+- **FIX:** Images – Hosting profile Automatic detects shared and managed hosting; before, it always used the whole time budget.*
+- **SECURITY:** Plugin files – the src folder is blocked in .htaccess; the cache trash folder is protected by deny rules.*
+- **SECURITY:** Images – deleting originals touches only files inside the uploads folder.*
+- **SECURITY:** Fonts – font data from pages of other sites is ignored and anonymous writes are limited.*
+- **SECURITY:** Quicklink – ignore patterns are data, no eval(); the custom guard code escapes the closing script tag; YouTube and Vimeo placeholder ids are checked and escaped.*
+- **SECURITY:** Integrations – the AJAX purge actions without a nonce are removed.*
+- **SECURITY:** ZiziBlocks – the rate limit of the public batch request trusts X-Forwarded-For only from a proxy.*
+
+## 1.1.7
+- **FIX:** Images – uploaded AVIF (and WebP) files keep their file extension; damaged attachments are repaired after the update.*
+- **SECURITY:** Fonts – visitors can no longer purge the page cache through the font data AJAX action.*
+- **FIX:** Polylang – no error while the page cache is written.*
+- **FIX:** Pretty Links – no fatal error on init.*
+- **FIX:** Images – palette GIFs convert without Imagick.*
+- **FIX:** Database – the scheduled cleanup is scheduled again.*
+- **FIX:** Overview – "Optimize Database" only optimizes tables, it no longer deletes revisions, trash and spam.*
+- **FIX:** License – a "not valid" answer is no longer cached as valid for 24 hours.*
+- **SECURITY:** Page cache – cached pages can no longer be downloaded directly from the cache folder (Apache, LiteSpeed; Nginx: updated snippet in NGINX_SECURITY_README.txt).*
+- **FIX:** Update – the update steps also run after a downgrade from a newer version.*
+- **FIX:** Uninstall – the cache trash folder of newer versions is removed too.*
+- **FIX:** CDN – Enter in a CDN field no longer switches the CDN off.*
+
+## 1.1.6 – 2026-10-23
+- **NEW:** WooCommerce – cached pages also for shoppers with a cart; cart fragments load only for them (Page Cache > Cache for Shoppers with a Cart).*
+- **NEW:** Page cache – the notice names the plugin behind a foreign advanced-cache.php or WP_CACHE false and fixes both with one button.*
+- **FIX:** Page cache – an empty advanced-cache.php left by WP Rocket no longer blocks the drop-in.*
+- **FIX:** Page cache – WooCommerce guests with an empty session (side carts, filters) store the shared page.*
+- **FIX:** Preload – after an update or a full purge the whole site is preloaded again, not only the homepage.*
+- **FIX:** Preload – the next pages of paginated archives (/page/2/ ...) are preloaded right after the first one, also after a purge.*
+- **FIX:** WooCommerce – the purge after a stock change of an order runs once, after the answer to the shopper.*
+- **FIX:** ZiziBlocks – stock text kept, placeholders only in shared pages, nonces match the shopper session, no skeleton over variations.*
+- **FIX:** JavaScript – data of wp_localize_script() is never delayed (variation swatches, button layout).*
+- **FIX:** Redundancy – with jQuery Migrate removed, .load(fn), .size() and other calls removed in jQuery 3 keep working.*
+- **FIX:** Admin – toggle panels keep their own status text.*
+
 ## 1.1.1 – 2026-10-21
 - **FIX:** Lazy load – a hero image served as a resized WebP/AVIF copy is kept out of lazy loading again.*
 - **FIX:** Lazy load – the first-screen image no longer gets fetchpriority "low" when the browser picked its WebP/AVIF copy.*
