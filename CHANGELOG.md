@@ -3,7 +3,7 @@
 All notable changes to ZiziCache are documented here.
 
 == Changelog ==
-## 1.2.0
+## 1.2.0 – 2026-11-01
 - **NEW:** Admin – completely new administration with light and dark theme, one Save changes bar for all settings, a settings snapshot on every save (last 10, restorable in History), no layout jumps while a page loads and a visible loading state while data load.*
 - **NEW:** Editor – ZiziCache panel in the block editor and a box in the classic editor: switch off the page cache, optimizations or single features (lazy load, LCP preload, font preload) for one page.*
 - **NEW:** Overview – tiles for cache coverage, hit rate, TTFB and preloaded pages, a chart of cache hits and misses (24 hours, 7 and 30 days) and a TTFB over time chart in Metrics.*
@@ -67,7 +67,7 @@ All notable changes to ZiziCache are documented here.
 - **SECURITY:** Integrations – the AJAX purge actions without a nonce are removed.*
 - **SECURITY:** ZiziBlocks – the rate limit of the public batch request trusts X-Forwarded-For only from a proxy.*
 
-## 1.1.7
+## 1.1.7 – 2026-10-25
 - **FIX:** Images – uploaded AVIF (and WebP) files keep their file extension; damaged attachments are repaired after the update.*
 - **SECURITY:** Fonts – visitors can no longer purge the page cache through the font data AJAX action.*
 - **FIX:** Polylang – no error while the page cache is written.*
