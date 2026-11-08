@@ -3,6 +3,46 @@
 All notable changes to ZiziCache are documented here.
 
 == Changelog ==
+
+## 1.2.6 – 2026-11-07 =
+- **FIX:** Images – hidden images (a mega menu, closed panels) no longer count as above the fold: they keep lazy load, phones stop downloading them. Existing scan data is ignored and collected again.*
+- **FIX:** Image Converter – the overview no longer counts images without any copy as converted, and explains images against files.*
+- **FIX:** Image Converter – the run summary names the reason "larger", and the savings no longer count an original without a copy.*
+- **CHANGED:** Separate mobile cache is off on new installs, and presets no longer turn it on. Existing sites keep their setting.*
+- **NEW:** Separate mobile cache – a warning says when it is needed: only with different HTML for phones.*
+- **NEW:** Unused CSS – a warning that deferred stylesheets without Generate Critical CSS cause a high CLS; the AI recommendation turns both on, and a new rule reports the risky setup.*
+
+## 1.2.5 – 2026-11-03 =
+- **NEW:** LiteSpeed mode – the first page of the shop, categories and other listings has its own tag: a save refreshes it after the "Shared archives delay", the pages behind it are purged an hour later, also at Cloudflare.*
+- **IMPROVED:** LiteSpeed mode – a save purges only the feeds of its post type, author and date archives only for blog posts.*
+- **FIX:** LiteSpeed mode – the WooCommerce shop page carries the tag of the product archive, its purge reaches it.*
+- **CHANGED:** LiteSpeed mode – a page is purged by its own tag only (OpenLiteSpeed ignores url= purges).*
+- **FIX:** LiteSpeed mode – the tag of a page leaves out ignored query parameters (utm_, fbclid...): a page first opened from an ad link is purged by its address.*
+- **IMPROVED:** LiteSpeed preload – a page the server answers with its old copy ("hit,stale") is asked again until the new one is ready, before the next page and the Cloudflare purge.*
+- **FIX:** LiteSpeed preload – saved orders and other post types without pages no longer queue archive purges.*
+- **NEW:** Filters zizi_cache_ls_deep_pages_delay, zizi_cache_ls_author_date_post_types and zizi_cache_ls_stale_purge (off).*
+
+## 1.2.4 – 2026-11-02 =
+- **FIX:** LiteSpeed mode – .htaccess no longer has "CacheEnable public /": LiteSpeed stored answers WordPress never gave, such as the empty 403 of a firewall (AIOS) for an ad link with "|", and served them to every visitor. Only pages ZiziCache approved are cached; ad parameters (utm_, fbclid, gclid) still share one cache key.*
+- **NEW:** LiteSpeed preload – one page at a time under a CPU budget (Page Cache, 25 % of one core by default, warning above 25 %) instead of parallel requests; it backs off when the server answers 429, 5xx or 508.*
+- **NEW:** LiteSpeed preload – background refresh: a saved post or product is purged at once and fetched again seconds later, the homepage, shop and categories it appears on once per "Shared archives delay" (10 minutes) for all saves; visitors keep the cached copy until the new one is ready.*
+- **NEW:** LiteSpeed preload – cached pages are fetched again before they expire; Cloudflare is purged in batches after the server has the new page.*
+- **FIX:** LiteSpeed mode – a saved product no longer purges every product page (the tag of a post type is only on its archive).*
+- **FIX:** WooCommerce (all cache modes) – a product saved without a change (an ERP or REST sync) purges nothing, nor does a product that is not published; a variation saved over the REST API purges the page of its product.*
+- **IMPROVED:** WooCommerce (all cache modes) – a change of the stock quantity alone (an order, a stock sync) purges only the product page; the shop and categories follow a change of price, stock status, name, visibility or categories, as in LiteSpeed Cache.*
+- **FIX:** LiteSpeed preload – a run left over without pages in its queue no longer blocks a new start (the AI connector answered 409).*
+- **FIX:** LiteSpeed mode – no cache check pass that fetched every page of the site after each preload run and whenever the Overview was open.*
+- **FIX:** Background jobs – a saved post no longer starts a wp-cron.php request of its own.*
+- **CHANGED:** LiteSpeed preload – the settings Parallel threads, Delay between batches and Server load limit are gone (CPU budget).*
+
+## 1.2.3 – 2026-11-02 =
+- **FIX:** LiteSpeed mode – the cache lifespan no longer purges the whole site (LiteSpeed and the Cloudflare zone) and crawls every page again; each page expires by its TTL and its next visit builds it. HTML on the Cloudflare edge can be up to two lifespans old, content changes still purge their pages.*
+- **FIX:** Preload after a save – the shop, categories and homepage a save shares with other posts are preloaded at most once in 10 minutes (filter zizi_cache_auto_preload_shared_window); they are still purged on every save. A shop synced by an ERP or a REST client rendered the same categories after every product.*
+- **FIX:** LiteSpeed mode – the file preload is off completely: the preload after a save, its queue, worker and watchdog and the refresh of expired files no longer fetch pages; a page purged after a save is built by its next visit, the LiteSpeed preload warms after a purge of the whole site. Until now only the full file preload checked the mode.*
+- **IMPROVED:** Preload – the requests of the file preload carry "ZiziCache-Preload" in the User-Agent, as the LiteSpeed preload; they looked like visitors in the access log.*
+- **SECURITY:** Preload requests no longer carry the login of an API client (WooCommerce REST key, application password) that started them; the HTTP login of a protected site still goes with them.*
+- **FIX:** LiteSpeed preload – the direct route to the own server is checked on the home page of the site, not the domain root, and waits up to 15 s for it (an uncached home page after a purge took longer than 5 s); a site in a subfolder went through the CDN.*
+
 ## 1.2.2 – 2026-11-01 =
 - **FIX:** LiteSpeed preload – a run goes on by itself in the background after every part, also without visitors and with the admin closed; until now it waited for WP-Cron.*
 - **FIX:** LiteSpeed preload – one worker at a time; a restarted run takes over from the old one.*
