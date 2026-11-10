@@ -9,7 +9,7 @@
 Page cache, LiteSpeed cache mode, Cloudflare edge cache, CSS, JavaScript, image and font optimization,<br>
 Core Web Vitals of real visitors and an AI assistant connection (MCP) in one plugin.
 
-[![Version](https://img.shields.io/badge/version-1.3.1-111111)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.2-111111)](CHANGELOG.md)
 [![WordPress](https://img.shields.io/badge/WordPress-6.9%2B-21759b?logo=wordpress&logoColor=white)](https://zizicache.com/doc/requirements-and-installation/)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-777bb4?logo=php&logoColor=white)](https://zizicache.com/doc/requirements-and-installation/)
 [![WooCommerce](https://img.shields.io/badge/WooCommerce-ready-7f54b3?logo=woocommerce&logoColor=white)](https://zizicache.com/doc/woocommerce-currencies-page-builders/)
