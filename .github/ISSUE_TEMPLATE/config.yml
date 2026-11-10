@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://zizicache.com/docs/
+    about: Setup guides, settings reference, WP-CLI, REST API and troubleshooting.
+  - name: Why is a page not cached?
+    url: https://zizicache.com/doc/why-page-not-cached/
+    about: The most common question, answered step by step.
+  - name: Licence, trial and billing
+    url: https://zizicache.com/contact/
+    about: Questions about your licence, trial or invoice.
+  - name: Security report
+    url: https://zizicache.com/contact/
+    about: Please report security problems privately, not in a public issue.
