@@ -4,6 +4,11 @@ All notable changes to ZiziCache are documented here.
 
 == Changelog ==
 
+## 1.3.2 – 2026-11-10 =
+- **FIX:** Used CSS – keeps the cascade order: rules of stylesheets after a render-blocking style the Used CSS does not hold are printed after that style, so theme rules no longer lose to it and the page no longer shifts (CLS) when the original stylesheets load.*
+- **FIX:** Overview – the hit rate counts visitors only: preload and bots are no longer counted as misses (file mode too); a note says when the Cloudflare edge serves pages the server never sees.*
+- **IMPROVED:** Preload after saves – the homepage (and the homepage of every language) is preloaded at most once a minute instead of once per 10 minutes, so frequent product saves no longer leave it uncached; shop and category pages keep their 10-minute window, and a page purged inside its window is preloaded once when the window ends.*
+
 ## 1.3.1 – 2026-11-10 =
 - **FIX:** Cache 404 pages – old addresses of renamed posts and products and ?p=ID redirect (301) again; the cached 404 page is sent after the redirects of WordPress and other plugins.*
 - **FIX:** Cache 404 pages – with NagataPress every language has its own 404 page.*
