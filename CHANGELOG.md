@@ -4,6 +4,45 @@ All notable changes to ZiziCache are documented here.
 
 == Changelog ==
 
+## 1.3.1 – 2026-11-10 =
+- **FIX:** Cache 404 pages – old addresses of renamed posts and products and ?p=ID redirect (301) again; the cached 404 page is sent after the redirects of WordPress and other plugins.*
+- **FIX:** Cache 404 pages – with NagataPress every language has its own 404 page.*
+- **FIX:** Images – no second preload of the LCP image when the theme or another plugin already preloads it.*
+- **FIX:** CSS – the FiboSearch stylesheet is no longer deferred (its layout is set by JavaScript, the page shifted).*
+- **IMPROVED:** Used CSS – a shared Used CSS (builder mode) is rebuilt when a page needs rules it lacks, keeping the rules of the earlier pages.*
+
+## 1.3.0 – 2026-11-09 =
+- **FIX:** Cloudflare failover – only the site's own DNS records are switched, they are restored after three good checks, and also on Disconnect and on deactivation.*
+- **NEW:** Cloudflare – the ZiziCache edge rule carries its own reference; a rule created by 1.2.6 is found and updated in place, no duplicate.*
+- **FIX:** Multisite – every site of a network has its own page cache settings; a site without them is not served from the cache instead of using the settings of the main site.*
+- **FIX:** Multisite – deactivating ZiziCache or turning off page cache on one site no longer removes the drop-in of the whole network, and a purge of one site keeps the cache of the others.*
+- **FIX:** Multisite – Redis and Memcached are managed on the main site only: a save on another site rewrote the object cache of the whole network.*
+- **FIX:** Multisite – the shared .htaccess uses the paths of the network (a subdirectory network ended in a redirect loop).*
+- **FIX:** LiteSpeed mode – activating a language or currency plugin updates Cache-Vary in .htaccess, and a new network site no longer purges the whole server.*
+- **FIX:** Page cache – the drop-in stays in sync after language plugin changes, page builder editor links are not stored, and the cache lifespan deletes only expired files.*
+- **FIX:** Page cache – content edited while ZiziCache was inactive is purged when it is activated again.*
+- **FIX:** Page cache – ?nocache and the bypass parameters skip the cache in the drop-in too.*
+- **FIX:** Updater – a failed download no longer deletes the plugin folder; WordPress keeps its own temporary backup until the new version is installed.*
+- **FIX:** Images – the size cleanup keeps files still used after deleted originals and removes only disabled sizes; WP-CLI deletes originals only with --delete-originals.*
+- **FIX:** Images – the original cleanup continues where it stopped, front-end uploads get sizes and conversion, and the FTP import names skipped files.*
+- **FIX:** Images – the delivery check no longer runs inside WP-CLI; "wp zizi-cache images delivery-test" schedules it for the next visit.*
+- **FIX:** Server rules – the Nginx snippet uses the content URL, gives CSS, JS, SVG and fonts in the cache folder a year of browser cache, and denies SQLite side files and the settings folder of a network.*
+- **FIX:** CSS – Minify CSS exclusions work, also with part of a file name; stylesheets without Used CSS keep blocking in Async mode.*
+- **FIX:** Fonts – subsets, preload override and display strategy are applied as set.*
+- **FIX:** JavaScript – exclusions added by integrations reach Delay JavaScript; the prerender guard defers the Meta Pixel instead of turning analytics off.*
+- **FIX:** Purge – WooCommerce variations, Varnish, Cloudways, Nginx Helper (also from WP-CLI and a system cron) and Cloudflare APO purge what changed.*
+- **FIX:** CDN – Pull CDN serves cached stylesheets with their url() rewritten.*
+- **FIX:** Security – REST writes check the nonce for every writing method, and rate limits are atomic.*
+- **FIX:** Self-hosted third-party files – the exact host is matched, every redirect is checked, polyfill.io is dropped.*
+- **FIX:** BFCache – Clear All Tokens works.*
+- **FIX:** Embeds – the YouTube box keeps the player ratio, Vimeo thumbnails come from oEmbed.*
+- **NEW:** Logs – every entry has a level, and the admin has a log level select.*
+- **NEW:** Redis and Memcached – a Remove button for stored usernames and passwords.*
+- **IMPROVED:** Doctor and self test are translatable and use the names of the admin.*
+- **IMPROVED:** Admin texts describe what the settings really do.*
+- **CHANGED:** Redis – the hit rate is labelled as the figure of the whole Redis server since it started.*
+- **FIX:** Cache for logged-in users – a page a plugin marks as private (membership, restricted content) is no longer cached.*
+
 ## 1.2.6 – 2026-11-07 =
 - **FIX:** Images – hidden images (a mega menu, closed panels) no longer count as above the fold: they keep lazy load, phones stop downloading them. Existing scan data is ignored and collected again.*
 - **FIX:** Image Converter – the overview no longer counts images without any copy as converted, and explains images against files.*
