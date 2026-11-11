@@ -4,12 +4,18 @@ All notable changes to ZiziCache are documented here.
 
 == Changelog ==
 
-## 1.3.2 – 2026-11-10 =
+## 1.3.3
+- **IMPROVED:** Lazy load iframes – works with cookie consent plugins (Complianz, iubenda, Real Cookie Banner, Cookiebot, OneTrust, Usercentrics and others): an embed held back until consent is left to the consent plugin, so videos and maps show after consent instead of an empty frame.*
+- **IMPROVED:** YouTube and Vimeo click-to-play and the Elementor video widget – a video held back by a consent plugin is left to the consent plugin and its placeholder; the player styles are added only to pages with a click-to-play box.*
+- **IMPROVED:** Used CSS – pieces no page has linked for twice the cache lifespan are deleted by the lifespan job, so they no longer pile up in the cache folder.*
+- **IMPROVED:** Nginx Helper – after a save, pages still in the cache are not built again (the homepage was rebuilt after every save).*
+
+## 1.3.2
 - **FIX:** Used CSS – keeps the cascade order: rules of stylesheets after a render-blocking style the Used CSS does not hold are printed after that style, so theme rules no longer lose to it and the page no longer shifts (CLS) when the original stylesheets load.*
 - **FIX:** Overview – the hit rate counts visitors only: preload and bots are no longer counted as misses (file mode too); a note says when the Cloudflare edge serves pages the server never sees.*
 - **IMPROVED:** Preload after saves – the homepage (and the homepage of every language) is preloaded at most once a minute instead of once per 10 minutes, so frequent product saves no longer leave it uncached; shop and category pages keep their 10-minute window, and a page purged inside its window is preloaded once when the window ends.*
 
-## 1.3.1 – 2026-11-10 =
+## 1.3.1
 - **FIX:** Cache 404 pages – old addresses of renamed posts and products and ?p=ID redirect (301) again; the cached 404 page is sent after the redirects of WordPress and other plugins.*
 - **FIX:** Cache 404 pages – with NagataPress every language has its own 404 page.*
 - **FIX:** Images – no second preload of the LCP image when the theme or another plugin already preloads it.*
@@ -48,7 +54,7 @@ All notable changes to ZiziCache are documented here.
 - **CHANGED:** Redis – the hit rate is labelled as the figure of the whole Redis server since it started.*
 - **FIX:** Cache for logged-in users – a page a plugin marks as private (membership, restricted content) is no longer cached.*
 
-## 1.2.6 – 2026-11-07 =
+## 1.2.6
 - **FIX:** Images – hidden images (a mega menu, closed panels) no longer count as above the fold: they keep lazy load, phones stop downloading them. Existing scan data is ignored and collected again.*
 - **FIX:** Image Converter – the overview no longer counts images without any copy as converted, and explains images against files.*
 - **FIX:** Image Converter – the run summary names the reason "larger", and the savings no longer count an original without a copy.*
@@ -56,7 +62,7 @@ All notable changes to ZiziCache are documented here.
 - **NEW:** Separate mobile cache – a warning says when it is needed: only with different HTML for phones.*
 - **NEW:** Unused CSS – a warning that deferred stylesheets without Generate Critical CSS cause a high CLS; the AI recommendation turns both on, and a new rule reports the risky setup.*
 
-## 1.2.5 – 2026-11-03 =
+## 1.2.5
 - **NEW:** LiteSpeed mode – the first page of the shop, categories and other listings has its own tag: a save refreshes it after the "Shared archives delay", the pages behind it are purged an hour later, also at Cloudflare.*
 - **IMPROVED:** LiteSpeed mode – a save purges only the feeds of its post type, author and date archives only for blog posts.*
 - **FIX:** LiteSpeed mode – the WooCommerce shop page carries the tag of the product archive, its purge reaches it.*
@@ -66,7 +72,7 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** LiteSpeed preload – saved orders and other post types without pages no longer queue archive purges.*
 - **NEW:** Filters zizi_cache_ls_deep_pages_delay, zizi_cache_ls_author_date_post_types and zizi_cache_ls_stale_purge (off).*
 
-## 1.2.4 – 2026-11-02 =
+## 1.2.4
 - **FIX:** LiteSpeed mode – .htaccess no longer has "CacheEnable public /": LiteSpeed stored answers WordPress never gave, such as the empty 403 of a firewall (AIOS) for an ad link with "|", and served them to every visitor. Only pages ZiziCache approved are cached; ad parameters (utm_, fbclid, gclid) still share one cache key.*
 - **NEW:** LiteSpeed preload – one page at a time under a CPU budget (Page Cache, 25 % of one core by default, warning above 25 %) instead of parallel requests; it backs off when the server answers 429, 5xx or 508.*
 - **NEW:** LiteSpeed preload – background refresh: a saved post or product is purged at once and fetched again seconds later, the homepage, shop and categories it appears on once per "Shared archives delay" (10 minutes) for all saves; visitors keep the cached copy until the new one is ready.*
@@ -79,7 +85,7 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** Background jobs – a saved post no longer starts a wp-cron.php request of its own.*
 - **CHANGED:** LiteSpeed preload – the settings Parallel threads, Delay between batches and Server load limit are gone (CPU budget).*
 
-## 1.2.3 – 2026-11-02 =
+## 1.2.3
 - **FIX:** LiteSpeed mode – the cache lifespan no longer purges the whole site (LiteSpeed and the Cloudflare zone) and crawls every page again; each page expires by its TTL and its next visit builds it. HTML on the Cloudflare edge can be up to two lifespans old, content changes still purge their pages.*
 - **FIX:** Preload after a save – the shop, categories and homepage a save shares with other posts are preloaded at most once in 10 minutes (filter zizi_cache_auto_preload_shared_window); they are still purged on every save. A shop synced by an ERP or a REST client rendered the same categories after every product.*
 - **FIX:** LiteSpeed mode – the file preload is off completely: the preload after a save, its queue, worker and watchdog and the refresh of expired files no longer fetch pages; a page purged after a save is built by its next visit, the LiteSpeed preload warms after a purge of the whole site. Until now only the full file preload checked the mode.*
@@ -87,7 +93,7 @@ All notable changes to ZiziCache are documented here.
 - **SECURITY:** Preload requests no longer carry the login of an API client (WooCommerce REST key, application password) that started them; the HTTP login of a protected site still goes with them.*
 - **FIX:** LiteSpeed preload – the direct route to the own server is checked on the home page of the site, not the domain root, and waits up to 15 s for it (an uncached home page after a purge took longer than 5 s); a site in a subfolder went through the CDN.*
 
-## 1.2.2 – 2026-11-01 =
+## 1.2.2
 - **FIX:** LiteSpeed preload – a run goes on by itself in the background after every part, also without visitors and with the admin closed; until now it waited for WP-Cron.*
 - **FIX:** LiteSpeed preload – one worker at a time; a restarted run takes over from the old one.*
 - **FIX:** LiteSpeed preload – starts after a plugin or theme update and after a plugin is activated or deactivated (they empty the LiteSpeed cache).*
@@ -96,7 +102,7 @@ All notable changes to ZiziCache are documented here.
 - **IMPROVED:** Action Scheduler 4.2.0 (safer reading of stored schedules, unique actions per arguments).*
 - **CHANGED:** Requires WordPress 6.9 or newer (Action Scheduler 4.2).*
 
-## 1.2.1 – 2026-11-01 =
+## 1.2.1
 - **FIX:** LiteSpeed preload – pages stored during the preload count as cached in the cache coverage.*
 - **FIX:** LiteSpeed preload – the progress shows newly cached, already cached and not cached pages instead of the hit rate.*
 - **FIX:** Overview – preloaded pages are compared with all pages of the site.*
@@ -169,7 +175,7 @@ All notable changes to ZiziCache are documented here.
 - **SECURITY:** Integrations – the AJAX purge actions without a nonce are removed.*
 - **SECURITY:** ZiziBlocks – the rate limit of the public batch request trusts X-Forwarded-For only from a proxy.*
 
-## 1.1.7 – 2026-10-25
+## 1.1.7
 - **FIX:** Images – uploaded AVIF (and WebP) files keep their file extension; damaged attachments are repaired after the update.*
 - **SECURITY:** Fonts – visitors can no longer purge the page cache through the font data AJAX action.*
 - **FIX:** Polylang – no error while the page cache is written.*
@@ -183,7 +189,7 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** Uninstall – the cache trash folder of newer versions is removed too.*
 - **FIX:** CDN – Enter in a CDN field no longer switches the CDN off.*
 
-## 1.1.6 – 2026-10-23
+## 1.1.6
 - **NEW:** WooCommerce – cached pages also for shoppers with a cart; cart fragments load only for them (Page Cache > Cache for Shoppers with a Cart).*
 - **NEW:** Page cache – the notice names the plugin behind a foreign advanced-cache.php or WP_CACHE false and fixes both with one button.*
 - **FIX:** Page cache – an empty advanced-cache.php left by WP Rocket no longer blocks the drop-in.*
@@ -196,7 +202,7 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** Redundancy – with jQuery Migrate removed, .load(fn), .size() and other calls removed in jQuery 3 keep working.*
 - **FIX:** Admin – toggle panels keep their own status text.*
 
-## 1.1.1 – 2026-10-21
+## 1.1.1
 - **FIX:** Lazy load – a hero image served as a resized WebP/AVIF copy is kept out of lazy loading again.*
 - **FIX:** Lazy load – the first-screen image no longer gets fetchpriority "low" when the browser picked its WebP/AVIF copy.*
 - **FIX:** AI & MCP – the page check warns about a lazy image only when visitors saw it on the first screen.*
@@ -257,19 +263,19 @@ All notable changes to ZiziCache are documented here.
 - **SECURITY:** AI & MCP – page checks fetch only this site; visitor data reaches the AI as untrusted text.*
 - **SECURITY:** Metrics – measurement beacons accept only allowed fields, small payloads and limits per IP.*
 
-## 1.0.19 – 2026-10-06
+## 1.0.19
 - **FIX:** TranslatePress – preload and the purge after saving use the real language addresses.*
 - **FIX:** Dashboard – cached pages and Pages Not Cached cover every language version of multilingual sites.*
 
-## 1.0.18 – 2026-10-06
+## 1.0.18
 - **FIX:** Preload – no longer deletes WP-Cron events that other plugins schedule while it runs.*
 - **FIX:** Page Cache – first-time visitors get cached pages again on shops with CURCY (Multi Currency for WooCommerce).*
 
-## 1.0.17 – 2026-09-27
+## 1.0.17
 - **FIX:** LiteSpeed – WooCommerce notices, recently viewed products and emptied carts no longer end up in cached pages.*
 - **FIX:** LiteSpeed – pages of a full cart are cached only while the cart cookies match the cart.*
 
-## 1.0.16 – 2026-09-26
+## 1.0.16
 - **SECURITY:** REST API – settings responses never contain the Cloudflare token or passwords.
 - **SECURITY:** Page Cache – ?cache_bust rebuilds a cached page only for logged-in users.
 - **SECURITY:** ZiziBlocks – prices by role or tax location are no longer shared between visitors.
@@ -363,7 +369,7 @@ All notable changes to ZiziCache are documented here.
 - **CHANGED:** Database – new installs have no scheduled cleanup.
 - **IMPROVED:** Translations – all new texts in 15 languages.
 
-## 1.0.15 – 2026-09-25
+## 1.0.15
 - **SECURITY:** Page Cache – preload flags in a request no longer store POST or logged-in pages.
 - **SECURITY:** Page Cache – unlocked password protected posts are no longer cached for other visitors.
 - **SECURITY:** Page Cache – pages with a commenter's name, email or pending comment are no longer cached.
@@ -381,7 +387,7 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** ZiziBlocks – nonce fields keep their action, forms no longer fail after hydration.
 - **FIX:** Prefetch – Speculation Rules and Quicklink skip links with parameters (add to cart, log out).
 
-## 1.0.14 – 2026-09-24
+## 1.0.14
 - **SECURITY:** REST API – the CWV page summary is admin-only.
 - **NEW:** JavaScript – "Defer all JavaScript" with two strategies: Defer (default) and After page load.
 - **NEW:** JavaScript – inline scripts can be deferred in their original order (off when CSP forbids it).
@@ -410,7 +416,7 @@ All notable changes to ZiziCache are documented here.
 - **IMPROVED:** Lazy loading supports `<picture>`.
 - **IMPROVED:** Frontend scripts back off when the REST API is blocked.
 
-## 1.0.13 – 2026-09-22
+## 1.0.13
 
 - **FIX:** License – plan name and details refresh on every validation.
 - **FIX:** LiteSpeed – automatic URL purges now reach LSCache.
@@ -431,7 +437,7 @@ All notable changes to ZiziCache are documented here.
 - **IMPROVED:** Preload runs without WP-Cron.
 - **IMPROVED:** Preload and REST work on stagings behind HTTP Basic Auth.
 
-## 1.0.12 – 2026-09-10
+## 1.0.12
 
 - **SECURITY:** Hardening of the CDN screen, the LCP beacon and the page-cache drop-in.
 - **FIX:** PHP 8.1 – fatal error in the LCP handler.
@@ -456,7 +462,7 @@ All notable changes to ZiziCache are documented here.
 - **IMPROVED:** Logging – less log noise.
 - **Compatibility:** tested with WordPress 7.1.
 
-## 1.0.11 – 2026-07-09 =
+## 1.0.11
 - **SECURITY:** Privilege escalation — the plugin's REST API management endpoints (configuration, database cleanup, license, Cloudflare/CDN credentials, cache purge) no longer grant access to the `editor` role. Access is restricted to administrators, still filterable via `zizi_cache_allowed_roles`. Previously an Editor holding a standard `wp_rest` nonce could reach administrator-level controls.*
 - **SECURITY:** Page cache path hardening — the `advanced-cache.php` drop-in now rejects path-traversal sequences and null bytes in the request path and `Host` header, sanitizes the role/currency cookies used in cache filenames (matching the language-cookie handling), and enforces a realpath containment check before serving a cached file. Prevents unauthenticated cross-directory cache disclosure in file-based cache mode.*
 - **SECURITY:** Log exposure — the bundled `.htaccess` (and the generated Nginx snippet) now also block rotated log backups (`zizi-log.log.1`, `.log.2`, …), not just `*.log`.*
@@ -465,23 +471,23 @@ All notable changes to ZiziCache are documented here.
 - **IMPROVED:** Removed leftover debug logging from the optimization hot path (`OptiCore`) that ran on every uncached front-end request.*
 - **IMPROVED:** `zizi_cache_db_size_history` is no longer autoloaded on every request.*
 
-## 1.0.10 – 2026-05-26 =
+## 1.0.10
 - **FIX:** Add missing width/height — wrong author-declared dimensions no longer distort images. The optimiser now reads the actual file dimensions for every `<img>`, compares them to the author's `width`/`height` attributes, and when the ratio drifts beyond 5% it rewrites the attributes to match reality before the defensive `aspect-ratio` style is emitted. Previously a raw-HTML widget such as `<img width="380" height="380" src="logo-500x205.webp">` would have its 1:1 aspect ratio locked in by the injected style and the image would render permanently distorted. Author-declared values within tolerance, images without an HTML width/height, SVG, and Gravatar still flow through their existing paths unchanged.*
 - **FIX:** Add missing width/height — when the actual file dimensions cannot be determined (broken URL, remote image without `img_width_height_remote_fetch`, unsupported format), the optimiser no longer emits an unverified `aspect-ratio` style; it leaves the `<img>` exactly as the author wrote it instead of risking a wrong locked ratio.*
 - **NEW:** Add missing width/height — per-image opt-out via `class="zizi-skip-dims"` plus two filters: `zizi_cache_dimension_drift_tolerance` (default 0.05, range 0–1) and `zizi_cache_skip_dimension_correction($skip, $src, $html_w, $html_h, $file_w, $file_h)`.*
 - **IMPROVED:** `Image::get_dimensions()` is now memoised per request, so repeated images (logos, icons, featured-image grids) hit `getimagesize()` only once per page render — keeps the new verify-on-every-image pass essentially free.*
 
-## 1.0.9 – 2026-05-19 =
+## 1.0.9
 - **FIX:** Cloudflare Emergency Failover — The toggle on the CDN tab is now persisted on save.*
 - **FIX:** Early Hints (103) — CSS and image hints are no longer fed from dead config keys. CSS hints now auto-pick the CSSEnhanced critical/RUCSS bundle for the current URL type when CSS optimization is active, and image hints auto-pick the detected LCP image from the runtime LCP transient — but only when the plugin's master `img_preload` toggle is ON, so disabling image preload in the plugin disables image Early Hints. Font hints additionally honour the manual UI list (`fonts_preload_manual_urls`) instead of only the cron-populated legacy key.*
 - **FIX:** Cloudflare Edge Cache Purge Parity — When the user (or any setting save / Font pipeline rebuild / WP-CLI flush) triggered `Purge::purge_pages()` while Cloudflare integration was active, the Cloudflare Manager only purged the homepage on the edge — the rest of the site stayed stale until manual intervention. The hook handler now mirrors LiteSpeed/APO behaviour: a `purge_pages` call with no targeted list maps to a Cloudflare `purge_everything`, so users see the same behaviour they're used to from LS mode and File-based mode.*
 - **NEW:** Cloudflare Edge Invalidation on Site-Structure Events — The Cloudflare Manager now hooks `wp_update_nav_menu`, `update_option_sidebars_widgets`, `switch_theme`, `customize_save_after`, `activated_plugin`, `deactivated_plugin`, and `update_option_permalink_structure` (parity with `LiteSpeedSupport`) and issues a full edge purge. Debounced within one request so a burst of structure changes collapses to a single API call. Only fires when `cdn_type=cloudflare` AND `cloudflare_enabled=true` — LiteSpeed-only and File-based installs are not affected.*
 - **IMPROVED:** Early Hints visibility — Reminder for site owners: HTTP 103 only surfaces in DevTools when Cloudflare's "Early Hints" feature (Speed → Optimization → Early Hints) is enabled on the zone. The plugin emits `Link: <…>; rel=preload` headers which Cloudflare then promotes to 103 responses.*
 
-## 1.0.8 – 2026-05-16 =
+## 1.0.8
 - **FIX:** WPML Compatibility — Resolved a fatal `Too few arguments to function ZiziCache\Plugins\Integrations\WPML::handleTranslationUpdate()` (`TypeError`, expected 3, got 1) that blocked content editing on any site running WPML alongside ZiziCache.*
 
-## 1.0.7 – 2026-05-11 =
+## 1.0.7
 - **IMPROVED:** PSI Mobile — Self-Host Then Minify Order — `OptiCore::process_output` now runs `JavaScript::self_host_third_party_js()` BEFORE `JavaScript::minify()`. Previously the order was reversed, so any third-party JS (Google Analytics, Microsoft Clarity, Cloudflare beacon, Hotjar, …) freshly downloaded by self-host bypassed the minify pass entirely on first request and was served verbatim. With this swap, every cross-origin script that the user opted to self-host now gets compressed in the same pipeline pass — typically a 25-35% size reduction on non-minified analytics blobs. Recovers a portion of the "Minify JavaScript — Est savings of 10 KiB" Lighthouse audit.*
 - **NEW:** PSI Mobile — Inline Script Minify Pass — Added `JavaScript::minify_inline_scripts()` to compress every `<script>…body…</script>` block ≥200 chars (Elementor settings, gtag config, dataLayer, _wpUtilSettings, plugin localized data). Skips application/ld+json, text/template, scripts tagged data-zizi-ignore / data-no-optimize / data-cfasync, and base64-encoded delay-inline payloads. Closes the gap that left WordPress inline blocks unminified despite the master JS minify toggle being ON. Wired into the pipeline immediately after `JavaScript::minify()`.*
 - **NEW:** PSI Mobile — Inline wp-hooks + wp-i18n Into `<head>` — Added `JavaScript::inline_wp_core_scripts()` which inlines the bodies of `<script id="wp-hooks-js">` and `<script id="wp-i18n-js">` (typically 3-4 KiB each) directly into the document head. These two scripts are emitted on virtually every WordPress 5.5+ page, are flagged "must stay sync" because Elementor / WooCommerce / Yoast / Rank Math all rely on their globals before any inline `*-before` companion block, and on slow mobile each costs a full HTTP RTT — about 800ms of pure latency for ~7 KiB of payload that fits in a single TCP packet. Inlining eliminates both round-trips and the parser-blocking time is unchanged (the bytes still need to be parsed either way). Per-file cap default raised to 20 KiB with a hard floor of 16 KiB so the typical WP-core webpack bundles (~10 KiB each) always fit; users with stricter needs can lower via filter. Options: `inline_wp_core_scripts` (default ON), `inline_wp_core_max_bytes` (default 20480, enforced floor 16384).*
@@ -493,12 +499,12 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** Image Preload — Eliminated false-positive `<link rel="preload" as="image">` on pages where the LCP element is text/heading or the only image lies below the fold. New STRICT mode (default ON, option `img_atf_strict_mode`) skips the legacy N-count "first 3 images" bootstrap when no real ATF viewport data exists for the (URL, device) combination. First visit pays a one-frame lazy-load cost; subsequent visits get accurate preloads from the JS scanner. Filter `zizi_cache_atf_strict_mode` available to override.*
 
 
-## 1.0.6 – 2026-05-09 =
+## 1.0.6
 - **FIX:** Language-Aware Cache — Now respects the user’s Language Priority configuration by mapping detected language subsets to their corresponding position within the priority chain.
 - **FIX:** LiteSpeed Mode — Resolved an issue where LiteSpeedPreload::process_results() never triggered increment_warmed_count(), causing the warmed pages counter to remain at 0 even after hundreds of successful warmups. Verification tests confirmed the fix.
 - **IMPROVED:** LiteSpeed Hit Rate Visualization — Reworked the layout from a 4-column grid with numeric counters above labels (HIT / MISS / No-C / UNK) into a unified vertical stack layout matching the rest of the Cache Status card design.
 
-## 1.0.5 – 2026-05-04 =
+## 1.0.5
 
 - **FIX:** Cache Status in Dashboard Overview — Now correctly reflects warmed pages and recalculates totals without artificial inflation. UI adjustments applied for both LS mode and File-Based mode.
 - **NEW:** Translations — Added support for the following locales: cs_CZ — Čeština (Česká republika), sk_SK — Slovenčina (Slovensko), de_DE — Deutsch (Deutschland), es_ES — Español (España), fr_FR — Français (France), it_IT — Italiano (Italia), pt_BR — Português (Brasil), nl_NL — Nederlands (Nederland), pl_PL — Polski (Polska), sv_SE — Svenska (Sverige), da_DK — Dansk (Danmark), nb_NO — Norsk Bokmål (Norge), ja — 日本語 (日本), tr_TR — Türkçe (Türkiye).
@@ -507,14 +513,14 @@ All notable changes to ZiziCache are documented here.
 - **IMPROVED:** Image Optimization — Improved detection of images for preload in Above The Fold.
 - **IMPROVED:** Optimization > Delay All JavaScript — Added new method “Load when idle”.
 
-## 1.0.4 – 2026-04-23 =
+## 1.0.4
 - **FIX:** Image Optimization — sizes="auto" is now only emitted on lazy-loaded images, where it is valid per the HTML spec. Eager/ATF images no longer include a redundant or invalid sizes attribute; their responsive srcset remains and defaults to 100vw.
 - **FIX:** Image Optimization — loading="eager" is no longer written to output HTML; eager loading is the browser default and the attribute was unnecessary.
 - **FIX:** Image Optimization — fetchpriority and decoding attributes are now consistently placed at the end of the <img> tag, after src, srcset, and sizes.
 - **FIX:** Image Optimization — In N-count bootstrap mode (first visit without ATF/viewport data), only 1 <link rel="preload" as="image"> is generated for the hero/LCP image instead of all N eager images.
 - **IMPROVED:** Image Optimization — On fresh pages without ATF data, the first N images (default N=3) remain eager as a bootstrap; only the first image receives a preload with fetchpriority="high" until real viewport data is collected.
 
-## 1.0.3 – 2026-04-22 =
+## 1.0.3
 - **IMPROVED:** Preload watchdog now recovers from stale or overdue cron events when DISABLE_WP_CRON=true is used with infrequent server-side cron schedules.
 - **FIX:** Permanent MISS on multilingual sites (WPML, Polylang, TranslatePress) resolved; cache drop-in now correctly reads language-specific cache files (e.g. index-cs.html.gz).
 - **SECURITY:** Language cookie values are sanitized before use in filesystem paths to prevent path traversal.
@@ -534,11 +540,11 @@ All notable changes to ZiziCache are documented here.
 - **FIX:** Admin "Auto-detected Font URLs" field now falls back to fonts_preload_urls when needed.
 - **FIX:** Font statistics reset now fully clears all related options and transients.
 
-## 1.0.2 – 2026-04-10 =
+## 1.0.2
 - **IMPROVED:**  Enhanced license validation.
 - **IMPROVED:**  UI improvements in the plugin dashboard.
 
-## 1.0.1 – 2026-04-08
+## 1.0.1
 - **NEW:** Migration from Lemon Squeezy to the new payment system Creem.io (EU Based, from Estonia). All existing license keys and updates remain fully functional. New payment, registrations and licenses are now handled through Creem.io.
 
 ## 1.0.0 – 2026-03-30
