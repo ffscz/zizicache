@@ -7,6 +7,7 @@ All notable changes to ZiziCache are documented here.
 ## 1.3.3
 - **IMPROVED:** Lazy load iframes – works with cookie consent plugins (Complianz, iubenda, Real Cookie Banner, Cookiebot, OneTrust, Usercentrics and others): an embed held back until consent is left to the consent plugin, so videos and maps show after consent instead of an empty frame.*
 - **IMPROVED:** YouTube and Vimeo click-to-play and the Elementor video widget – a video held back by a consent plugin is left to the consent plugin and its placeholder; the player styles are added only to pages with a click-to-play box.*
+- **IMPROVED:** YouTube and Vimeo click-to-play – sharp thumbnail also for a video held back by a consent plugin: after consent the player shows the sharp picture and the video loads on a click; Automatic quality is sharp on every device and a portrait video gets its portrait frame.*
 - **IMPROVED:** Used CSS – pieces no page has linked for twice the cache lifespan are deleted by the lifespan job, so they no longer pile up in the cache folder.*
 - **IMPROVED:** Nginx Helper – after a save, pages still in the cache are not built again (the homepage was rebuilt after every save).*
 
